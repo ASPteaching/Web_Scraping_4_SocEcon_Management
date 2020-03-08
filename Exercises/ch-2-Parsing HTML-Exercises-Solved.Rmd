@@ -1,0 +1,234 @@
+---
+title: "Parsing HTML with the `rvest`"
+author: "Alex Sanchez"
+date: "June 2018"
+output: 
+  html_document:
+    toc: true
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE, echo=FALSE}
+require(knitr)
+# include this code chunk as-is to set options
+opts_chunk$set(comment = NA, prompt = TRUE, tidy = FALSE, fig.width = 7, fig.height = 7,echo = TRUE, message = FALSE, warning = FALSE, cache=FALSE)
+Sys.setlocale("LC_TIME", "C")
+```
+
+```{r, echo=FALSE, message=FALSE}
+# load packages
+if (!require(rvest)) install.packages("rvest", dep=TRUE)
+require(rvest)
+```
+
+# Scraping exercises
+
+Remember
+
+1. Start any exercise looking the website you are asked to scrap.
+2. Devise your scraping strategy
+3. Execute
+4. Check the consistency of what you have obtained. Clean it whenever needed
+5. Eventually analyze the data
+
+## Exercise 1
+
+Consider the url 'https://statbel.fgov.be/en/themes/indicators/prices/service-price-indices#panel-11'
+
+Extract all the information load on table.
+
+
+```{r}
+require(rvest)
+url<- 'https://statbel.fgov.be/en/themes/indicators/prices/service-price-indices#panel-11'
+# url='http://statbel.fgov.be/en/statistics/figures/economy/indicators/prix_prod_con/'
+
+TAB <- read_html(url) %>% html_nodes('td') %>% html_text()
+NAMES <- read_html(url)%>% html_nodes('th') %>% html_text()
+M <- data.frame(matrix(TAB, ncol=5, nrow=13, byrow=T))
+M  <- rbind(rep(NA,5),M)
+M <- cbind(NAMES[7:20],M)
+names(M) = NAMES[1:6]
+```
+An alernative approch is using `html_table` function
+
+```{r}
+require(rvest)
+url<- 'https://statbel.fgov.be/en/themes/indicators/prices/service-price-indices#panel-11'
+page <- read_html (url) 
+myTables <-html_table(page, fill = TRUE) 
+M2<- myTables[[1]]
+```
+The process seems easier to do using `html_table`
+
+## Exercise 2
+
+Consider the url 'http://www2.sas.com/proceedings/sugi30/toc.html'
+
+Extract all the papers names, from 001-30 to 268-30
+
+HINT: Use selectorgagdget to see that selector `cite` is associated with the paper titles.
+
+```{r eval=FALSE}
+url<- 'http://www2.sas.com/proceedings/sugi30/toc.html'
+names <- read_html(url) %>% 
+  html_nodes('cite') %>% 
+  html_text() # html_attr('href')
+names[1:6]
+
+```
+
+```{r eval=FALSE}
+url<- 'http://www2.sas.com/proceedings/sugi30/toc.html'
+urls <- read_html(url) %>% 
+  html_nodes('cite') %>% 
+  html_attr('href')
+urls[1:6]
+
+```
+
+
+## Exercise 3
+
+Consider the url 'http://www.gibbon.se/Retailer/Map.aspx?SectionId=832'
+
+Extract all the options (Countries) availables on select button.
+
+```{r eval=FALSE}
+url <- 'http://www.gibbon.se/Retailer/Map.aspx?SectionId=832'
+countries <- read_html (url)  %>%
+  html_nodes('#ctl00_ContentPlaceHolder1__countries') %>% 
+  html_children() %>% 
+  html_text()
+countries
+```
+
+Notice that once we have the right node we access the text in children nodes using `html_children`
+
+## Exercise 4
+
+Consider the url 'http://r-exercises.com/start-here-to-learn-r/'
+
+Extract *all the topics* available on the url.
+
+- Looking at the page contents we realize that "topics" appear in bold while subtopics don't.
+- We use this characteristic to make three _nested_ calls to `html_nodes()` in order to recover these "artificial" subheadings 
+- _the process would have been easier if the page developer had decided to give these headers a format using css but it's her/his decision_
+
+```{r eval=FALSE}
+url <- 'http://www.r-exercises.com/start-here-to-learn-r/'
+topics <- read_html(url) %>% 
+  html_nodes('p') %>% 
+  html_nodes('strong') %>% 
+  html_nodes('a') %>% 
+  html_text()
+topics[1:20]
+```
+
+## Exercise 5
+
+Consider the url 'http://www.immobiliare.it/Roma/agenzie_immobiliari_provincia-Roma.html'
+
+Extract all inmobiliaries names published on first page.
+
+```{r eval=FALSE}
+url<- 'http://www.immobiliare.it/Roma/agenzie_immobiliari_provincia-Roma.html'
+names <- read_html(url) %>% 
+  html_nodes('h4') %>% 
+  html_nodes('a') %>% 
+  html_text()
+```
+
+
+## Exercise 6
+
+Consider the url='http://www.dictionary.com/browse/' and the words 'handy','whisper','lovely','scrape'.
+
+Build a data frame, where the first variables is "Word" and the second variables is "definitions". Scrape the definitions from the url.
+
+_This exercise does not work  in its current form because the page has been changed_
+
+```{r eval=FALSE}
+word=c('handy','whisper','lovely','scrape')
+defs=c()
+for(i in 1:4)
+{
+url=paste('http://www.dictionary.com/browse/',word[i],sep="")
+a=read_html(url)%>%html_nodes('.def-content,#source-word-origin')%>%html_text()
+def=a[1:grep(paste('Origin of ',word[i],sep=''),a)-1]
+def=unlist(strsplit(def,'\r'))
+def=unique(unlist(strsplit(def,'\n')))
+def=paste(def,rep('/',length(def)))
+def=toString(def)
+defs=c(defs,def)
+}
+s=data.frame(cbind(word,defs))
+s[1:2,] 
+```
+
+## Exercise 7
+
+- Write a script to find out which actor appears in  higher number of Star War movies.
+
+- Hint: The idea is similar to the previous exercise but with a litlle more work you can 
+
+1. Start in a page that gives you access to the list of Star Wars Films (try googling "Star Wars IMDB")
+2. From here write a function to extract the authors list from an IMDB whose URL is providd
+3. Apply the function to the URLs list and
+4. Tabulate or plot
+
+```{r}
+library(rvest)
+# Start googling "list of all star war films IMDB"
+# Select one page, for example: https://www.imdb.com/list/ls069505240/
+
+star_wars_movies <- read_html("https://www.imdb.com/list/ls069505240/")
+
+# Inspect the page to find appropriate selectors for each movie's urls
+# Notice that we don't have to recover the node's text but the url, so we use "html_attr"
+# Selection with selector gadget can yield distinct results because these are but "guesses"
+
+# selectorDescription <- ".mode-detail:nth-child(2) a"
+selectorDescription <- "h3 a"
+
+url_film <- star_wars_movies %>% 
+  html_nodes(selectorDescription) %>% 
+  html_attr('href')
+
+# Inspect the object. 
+# First ten items correspond to titles but they miss the first part of the url
+
+urls <- character()
+for(i in 1:10){
+  urls[i] <- paste0("https://www.imdb.com",url_film[i])
+}
+
+# Now we have the lists of pages that have to be scrapped 
+# we iterate with the code used in the example
+
+# lego_movie <- read_html("http://www.imdb.com/title/tt1490017/")
+# tables <- html_table(lego_movie, fill = TRUE) #Parses tables into data frames
+# castTable<- tables[[1]]
+# castNames3 <- as.character(castTable[-1,2])
+
+cast = list()
+n = 1
+for(i in urls){
+  film <- read_html(i)
+  tables <- html_table(film, fill = TRUE)
+  castTable<- tables[[1]]
+  castNames <- as.character(castTable[-1,2])
+  cast[[n]] <- castNames
+  n = n + 1
+}
+
+# To complete the process joint the lists with 'unlist', tabulate and sort
+
+sortedCast <- sort(table(unlist(cast)), dec=TRUE)
+sortedCast[1:5]
+# And the winner is: "Actors[1]"
+
+```
+
+

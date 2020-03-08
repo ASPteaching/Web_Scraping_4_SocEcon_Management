@@ -1,0 +1,87 @@
+---
+title: "Parsing HTML with the `rvest`"
+author: "Alex Sanchez"
+date: "June 2018"
+output: 
+  html_document:
+    toc: true
+---
+
+```{r setup, include=FALSE, echo=FALSE}
+require(knitr)
+# include this code chunk as-is to set options
+opts_chunk$set(comment = NA, prompt = TRUE, tidy = FALSE, fig.width = 7, fig.height = 7,echo = TRUE, message = FALSE, warning = FALSE, cache=FALSE)
+Sys.setlocale("LC_TIME", "C")
+```
+
+```{r, echo=FALSE, message=FALSE}
+# load packages
+if (!require(rvest)) install.packages("rvest", dep=TRUE)
+require(rvest)
+```
+
+# Scraping exercises
+
+This page contains several scraping exercises inspired, that is, copied, from [https://www.r-bloggers.com/web-scraping-exercises/](Web Scraping Exercises) also available in [https://www.r-exercises.com/start-here-to-learn-r/](https://www.r-exercises.com/start-here-to-learn-r/).
+
+Most of the code, however, has been changed because, as time goes by, the web content is modified and old code does not work anymore.
+
+Remember
+
+1. Start any exercise looking the website you are asked to scrap.
+2. Devise your scraping strategy
+3. Execute
+4. Check the consistency of what you have obtained. Clean it whenever needed
+5. Eventually analyze the data
+
+## Exercise 1
+
+Consider the url 'https://statbel.fgov.be/en/themes/indicators/prices/service-price-indices#panel-11'
+
+Extract all the information load on table.
+
+
+## Exercise 2
+
+Consider the url 'http://www2.sas.com/proceedings/sugi30/toc.html'
+
+Extract all the papers names, from 001-30 to 268-30
+
+HINT: Use selectorgagdget to see that selector `cite` is asso ciated with the paper titles.
+
+
+## Exercise 3
+
+Consider the url 'http://www.gibbon.se/Retailer/Map.aspx?SectionId=832'
+
+Extract all the options (Countries) availables on select button.
+
+
+## Exercise 4
+
+Consider the url 'http://r-exercises.com/start-here-to-learn-r/'
+
+Extract *all the topics* available on the url.
+
+## Exercise 5
+
+Consider the url 'http://www.immobiliare.it/Roma/agenzie_immobiliari_provincia-Roma.html'
+
+Extract all inmobiliaries names published on first page.
+
+## Exercise 6
+
+Consider the url='http://www.dictionary.com/browse/' and the words 'handy','whisper','lovely','scrape'.
+
+Build a data frame, where the first variables is "Word" and the second variables is "definitions". Scrape the definitions from the url.
+
+## Exercise 7 (not in the original list)
+
+- Write a script to find out which actor appears in  higher number of Star War movies.
+
+- Hint: The idea is similar to the previous exercise but with a litlle more work you can 
+
+1. Start in a page that gives you access to the list of Star Wars Films (try googling "Star Wars IMDB")
+2. From here write a function to extract the authors list from an IMDB whose URL is providd
+3. Apply the function to the URLs list and
+4. Tabulate or plot
