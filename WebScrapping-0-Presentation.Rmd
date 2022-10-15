@@ -1,43 +1,71 @@
 ---
 title: "Web Scraping with R"
 author: "Alex Sanchez (asanchez@ub.edu) <br> GME Department. Universitat de Barcelona <br> Statistics and Bioinformatics Unit. Vall d'Hebron Institut de Recerca"
-date: "March 2020"
+date: "`r Sys.Date()`"
 output:
-  slidy_presentation:
-    fig_width: 7
-    fig_height: 6
-css: myStyles.css
-footer: "Introduction"
-keep_md: true
-highlight: pygments
+  xaringan::moon_reader:
+    css: [default, metropolis, metropolis-fonts, "mycss.css" ]
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: true
+editor_options: 
+  chunk_output_type: console
 ---
 
-```{r setLicense, child = 'license.Rmd'}
+<style type="text/css">
+.remark-slide-content {
+    font-size: 25px;
+    padding: 1em 2em 1em 2em;
+}
+.left-code {
+  color: #777;
+  width: 38%;
+  height: 92%;
+  float: left;
+}
+.right-plot {
+  width: 60%;
+  float: right;
+  padding-left: 1%;
+}
+</style>
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE, echo=FALSE,
+        message=FALSE,warning=FALSE,
+        fig.dim=c(4.8, 4.5), fig.retina=2, out.width="100%")
+
+knitr::opts_chunk$set(echo = FALSE)
+
+knitr::knit_hooks$set(mysize = function(before, options, envir) {
+  if (before) 
+    return(options$size)
+})
 ```
 
-```{r disclaimer, child = 'disclaimer.Rmd'}
-```
 
-Objectives and Competences
-==========================
+# Contents
+
+0. Objectives
+1. Introduction to web technologies & Overview
+2. The basics: HTML and CSS
+3. Scraping web pages with R using `rvest`
+4. XML, XPath and the DOM. Parsing XML
+5. Using APIs to get data
+
+---
+
+# Objectives and Competences
+
 - Become familiar with technologies for content dissemination on the web Information extraction from web-formatted data.
 - Become familiar -*that is, know how to do it*- with the different tasks involved in web scraping.
 - Learn how to set up and execute successful web scraping projects (making them as automatic, robust and error-resistant as possible).
 
+---
 
-Contents
-=========
-0. Introduction to web technologies & Overview
-1. The basics: HTML and CSS
-2. Scraping web pages with R using `rvest`
-3. XML, XPath and the DOM. Parsing XML
-4. Using APIs to get data
-
-
-
-
-We need data, ... and the web is full of it
-===========================================
+# We need data, and the web is full of it
 
 - Whatever our job is, it often relies on having the appropriate data to work with.
 - The web has plenty of data
@@ -45,8 +73,10 @@ We need data, ... and the web is full of it
     + Hard to quantify how much more exists outside of HTML Tables, but there is an estimate of at least 30 million lists with 'high quality relational data'.
 - Accessing the data in the web is the topic of this course
 
-What we need to know
-====================
+
+---
+
+# What we need to know
 
 - Technologies that allow the *distribution of content on the Web*.
 - Techniques & Tools for *collecting* (as opposite to distributing) data from the web.
@@ -56,22 +86,20 @@ What we need to know
     + Regular expressions for describing patterns in strings.
     + A variety of text mining and other interesting topics, such as "Sentiment Analysis" for analyzing data from Twitter, Linkedin etc.
 
-Technologies for disseminating, extracting, and storing web data
-=============================================================
 
-<!-- <div align="center">  -->
-<!--  <img src="images/webTechnologies.png" width="75%" style="float:centered" -->
-<!--  alt ="Technologies for disseminating, extracting, and storing web data" />  -->
-<!-- </div -->
+---
 
-<!-- --- -->
+# Technologies for disseminating, extracting, and storing web data
 
 ```{r echo=FALSE, out.width="90%", fig.align='center', fig.cap='Source: Automated Data Collection with R'}
 knitr::include_graphics("images/webTechnologies.png")
 ```
 
-Technologies (1): HTML
-=======================
+
+---
+
+# Technologies (1): HTML
+
 
 <div align="center"> 
  <img src="images/html.jpeg" height="75%" style="float:centered"
@@ -83,8 +111,10 @@ Technologies (1): HTML
 - First option for containing information we look for.
 - A minimum understanding of html required 
 
-Technologies (2): CSS
-==================
+
+---
+
+# Technologies (2): CSS
 
 <div align="center"> 
  <img src="images/250px-CSS-shade.svg.png" height="100%" style="float:centered"
@@ -95,8 +125,10 @@ Technologies (2): CSS
 - It allows one to adapt the presentation to different types of devices, such as large screens, small screens, or printers. 
 - CSS is independent of HTML and can be used with any XML-based markup language.
 
-Technologies (3): XML
-=======================
+
+---
+
+# Technologies (3): XML
 
 <div align="center"> 
  <img src="images/xml.png" height="75%" style="float:centered"
@@ -107,8 +139,9 @@ Technologies (3): XML
 - XML is "just" data wrapped in user-defined tags. 
 - The user-defined tags **make XML much more flexible** for storing data than HTML.
 
-Technologies (4): XPath
-=======================
+---
+
+# Technologies (4): XPath
 
 <div align="center"> 
  <img src="images/xpath.png" height="75%" style="float:centered"
@@ -119,8 +152,9 @@ Technologies (4): XPath
 - XML is "just" data wrapped in user-defined tags. 
 - The user-defined tags **make XML much more flexible** for storing data than HTML.
 
-Technologies (4): JSON
-=======================
+---
+
+# Technologies (4): JSON
 
 <div align="center"> 
  <img src="images/json.jpeg" height="75%" style="float:centered"
@@ -133,9 +167,9 @@ Technologies (4): JSON
 - JSON is a syntax for storing and exchanging data.
 - JSON is an easier-to-use alternative to XML
 
+---
 
-Technologies (5) XML vs JSON
-=============================
+# Technologies (5) XML vs JSON
 
 <br>
 
@@ -144,8 +178,10 @@ Technologies (5) XML vs JSON
  alt ="Technologies (3): JSON" /> 
 </div>
 
-Technologies (6): AJAX
-=======================
+---
+
+# Technologies (6): AJAX
+
 
 <div align="center"> 
  <img src="images/ajax.jpeg" height="75%" style="float:centered"
@@ -160,8 +196,9 @@ Technologies (6): AJAX
 - AJAX allows web pages to be updated asynchronously by exchanging data with a web server behind the scenes. 
 - This means that it is possible to update parts of a web page, without reloading the whole page.
 
-Technologies (7): Regular Expressions
-======================================
+---
+
+# Technologies (7): Regular Expressions
 
 <br>
 <div align="center"> 
@@ -169,9 +206,9 @@ Technologies (7): Regular Expressions
  alt ="Technologies (4): AJAX" /> 
 </div>
 
+---
 
-So what is web scraping?
-========================
+# So what is web scraping?
 
 - Web scraping (web harvesting or web data extraction) is how we name computer software techniques for extracting information from websites.
     + See [Wikipedia](https://en.wikipedia.org/wiki/Web_scraping)
@@ -179,8 +216,11 @@ So what is web scraping?
 - Web scraping focuses on the *transformation of unstructured data* on the web, typically in web format such as HTML, XML or JSON, into *structured* data that can be stored and analyzed in a central local database or spreadsheet.
     + Instead of structured data, if using R, we can think of *[tidy](http://vita.had.co.nz/papers/tidy-data.pdf)* data.
 
-Understanding web communication: http
-=====================================
+
+---
+
+# Understanding web communication: http
+
 
 <div align="center"> 
  <img src="images/client-server.png" style="float:centering"
@@ -193,8 +233,9 @@ Understanding web communication: http
     + Requesting information directly from the server
     + Parsing the response emited by the server
 
-Requesting & retrieving information directly 
-=============================================
+---
+
+# Requesting & retrieving information directly 
 
 <div align="center"> 
  <img src="images/client-server-retrieve.png" style="float:centering"
@@ -210,8 +251,9 @@ Requesting & retrieving information directly
     + `httr`, `Rcurl`
     + `tweeteR`, `Rlinkedin`
 
-Parsing the server's response
-===============================
+---
+
+# Parsing the server's response
 
 <div align="center"> 
  <img src="images/client-server-parse.png" style="float:centered"
@@ -225,9 +267,10 @@ Parsing the server's response
     + `rvest`, `selectR`
     + `XML`, `xml2`
 
+---
 
-The R scraping toolkit
-===========================
+# The R scraping toolkit
+
 
 - Comparison of some popular R packages for data collection.
 
@@ -239,9 +282,10 @@ The R scraping toolkit
 Source: **RCrawler: An R package for parallel web crawling and scraping**. Salim Khalil & MohamedFakir. 
 https://doi.org/10.1016/j.softx.2017.04.004
 
+---
 
-Web scraping and R
-===================
+# Web scraping and R
+
 
 - Web scraping has been developed independently of R. <br>See for example:
     + [Scraping the Web for Arts and Humanities](https://www.essex.ac.uk/ldev/documents/going_digital/scraping_book.pdf)
@@ -250,36 +294,17 @@ Web scraping and R
 - There is a lot of information on scraping using python
 - However if you feel comfortable working with R it is possible that you can absorbe easier and faster some of the the vast amount of resources for getting data from the web with R.
 
-The scrapping process
-=============================
+---
+
+# The scrapping process
+
 <div align="center"> 
  <img src="images/fromTheWebIntoR.png" height="75%" style="float:centered"/> 
 </div>
 
-<!--
+---
 
-Methodology
-============
-- Combine theory and practice
-    + Information about technologies and how-to’s will be provided and introduced in class.
-    + Techniques for accessing and extracting infformation will be introduced and tested in class.
-- From the very beginning you should conceive a web scraping project. 
-     + We will devote (some) time to implement your own project and discuss issues that may appear.
-     
-Evaluation
-===========
-- There is no examen.
-- You must suggest and implement a web scraping project.
-- Scoring will be based on
-    + Project completeness and complexity.
-    + Appropriate use of technologies and tools discussed in class.
-    + Robustness of the elaborated product.
-
--->
-
-
-Case Study 1: World heritage sites in danger
-========================================================
+# Case Study 1: World heritage sites in danger
 
 - The UNESCO is an organization of the United Nations which, among other things, fights for the preservation of the world's natural and cultural heritage. 
 - As November 2013 there  are 981 heritage sites, most of which of are man-made like the Pyramids of Giza, but also natural phenomena like the Great Barrier Reef are listed. 
@@ -288,9 +313,12 @@ Case Study 1: World heritage sites in danger
     + *Which sites are threatened and where are they located?*
     + *Are there regions in the world where sites are more endangered than in others?* 
     + *What are the reasons that put a site at risk?* 
-    
-Working through the case study with R
-=====================================
+   
+
+---
+
+# Working through the case study with R
+
 
 - This case study has been adapted from chapter 1 of the book [Automated Data Collection with R](http://www.r-datacollection.com/) (ADCR, from now on). 
 - Its goal is not to be exhaustive but providing a first example of a situation where we obtain and analyze data from the web.
@@ -309,24 +337,31 @@ Working through the case study with R
 **See lesson "WebScrapping-1b-Parsing HTML" in the Summer School folder** for an example that uses `rvest`
 -->
 
-Example 1a: Wikipedia page
-=============================================
+
+---
+
+# Example 1a: Wikipedia page
 
 <div align="center"> 
  <img src="images/worldheritages1WikiPage.png"  width="90%"style="float:centered"
  alt ="R packages for data collection" /> 
 </div>
 
-Example 1b: Locate desired table
-=============================================
+
+---
+
+# Example 1b: Locate desired table
+
 
 <div align="center"> 
  <img src="images/worldHeritages2Table.png"  width="90%"style="float:centered"
  alt ="R packages for data collection" /> 
 </div>
 
-Example 1c: R code
-=============================================
+---
+
+# Example 1c: R code
+
 
 ```{r eval = FALSE}
 # load packages
@@ -339,7 +374,7 @@ danger_table <- readHTMLTable(heritage_parsed, stringsAsFactors = FALSE, which =
 danger_table <- danger_table[,c(1,3,4,6,7)]
 colnames(danger_table) <- c("name","locn","crit","yins","yend")
 #--- Clean data
-danger_table$crit <- ifelse(str_detect(danger_table$crit, "Natural")==T, "nat", "cult")
+danger_table$crit <- ifelse(str_detect(danger_table$crit, "Natural")T, "nat", "cult")
 # cleanse years
 danger_table$yins <- as.numeric(danger_table$yins)
 danger_table$yend <- as.numeric(unlist(str_extract_all(danger_table$yend, "[[:digit:]]{4}$")))
@@ -353,32 +388,36 @@ danger_table$y_coords <- as.numeric(str_sub(str_extract(danger_table$locn, reg_y
 danger_table$x_coords <-  as.numeric(str_sub(str_extract(danger_table$locn, reg_x), 3, -1))
 #--- plot endangered heritage sites
 par(oma=c(0,0,0,0)); par(mar=c(0,0,0,0))
-pch <- ifelse(danger_table$crit == "nat", 19, 2)
+pch <- ifelse(danger_table$crit  "nat", 19, 2)
 map("world", col = "darkgrey", lwd = .5, mar = c(0.1,0.1,0.1,0.1))
 points(danger_table$x_coords, danger_table$y_coords, pch = pch, col = "black", cex = .8)
 box()
 ```
 
-Example 1d: We have an R data frame
-=============================================
+---
+
+# Example 1d: We have an R data frame
+
 
 <div align="center"> 
  <img src="images/worldHeritages3RDataFrame.png"  width="90%"style="float:centered"
  alt ="R packages for data collection" /> 
 </div>
 
+---
 
-Example 1e: And now the plot
-=============================================
+# Example 1e: And now the plot
+
 
 <div align="center"> 
  <img src="images/worldHeritages4Map.png"  width="90%"style="float:centered"
  alt ="R packages for data collection" /> 
 </div>
 
+---
 
-References and resources
-=========================
+# References and resources
+
 - [Automated Data Collection from the Web with R](http://www.r-datacollection.com/), by Munzer, Rubba, Meisner & Nyhulis. Wiley.
 - [XML and Web Technologies for Data Science with R](http://www.rxmlwebtech.org/). Deborah Nolan & Duncan Temple Lang. UseR!
 - [Introduction to Data Technologies](https://www.stat.auckland.ac.nz/~paul/ItDT/itdt-2013-03-26.pdf). Duncan Murdoch.
