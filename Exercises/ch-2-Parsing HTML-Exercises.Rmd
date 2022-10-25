@@ -1,7 +1,6 @@
 ---
-title: "Parsing HTML with the `rvest`"
+title: "Parsing HTML with `rvest`"
 author: "Alex Sanchez"
-date: "June 2018"
 output: 
   html_document:
     toc: true

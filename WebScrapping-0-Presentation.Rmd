@@ -1,10 +1,11 @@
 ---
-title: "Web Scraping with R"
-author: "Alex Sanchez (asanchez@ub.edu) <br> GME Department. Universitat de Barcelona <br> Statistics and Bioinformatics Unit. Vall d'Hebron Institut de Recerca"
-date: "`r Sys.Date()`"
+title: Web Scraping with R
+author: Alex Sanchez and Francesc Carmona
+institute: Genetics Microbiology and Statistics Department <br> Universitat de Barcelona
+date: October 2022 # "`r Sys.Date()`"
 output:
   xaringan::moon_reader:
-    css: [default, metropolis, metropolis-fonts, "mycss.css" ]
+    css: [default, metropolis, metropolis-fonts, "css4WScourse.css" ]
     lib_dir: libs
     nature:
       highlightStyle: github
@@ -48,7 +49,6 @@ knitr::knit_hooks$set(mysize = function(before, options, envir) {
 
 # Contents
 
-0. Objectives
 1. Introduction to web technologies & Overview
 2. The basics: HTML and CSS
 3. Scraping web pages with R using `rvest`
@@ -59,8 +59,12 @@ knitr::knit_hooks$set(mysize = function(before, options, envir) {
 
 # Objectives and Competences
 
-- Become familiar with technologies for content dissemination on the web Information extraction from web-formatted data.
+- Become familiar with technologies for content dissemination on the web.
+
+- Information extraction from web-formatted data.
+
 - Become familiar -*that is, know how to do it*- with the different tasks involved in web scraping.
+
 - Learn how to set up and execute successful web scraping projects (making them as automatic, robust and error-resistant as possible).
 
 ---
@@ -94,7 +98,6 @@ knitr::knit_hooks$set(mysize = function(before, options, envir) {
 ```{r echo=FALSE, out.width="90%", fig.align='center', fig.cap='Source: Automated Data Collection with R'}
 knitr::include_graphics("images/webTechnologies.png")
 ```
-
 
 ---
 
@@ -180,25 +183,24 @@ knitr::include_graphics("images/webTechnologies.png")
 
 ---
 
-# Technologies (6): AJAX
+<!-- # Technologies (6): AJAX -->
 
+<!-- <div align="center">  -->
+<!--  <img src="images/ajax.jpeg" height="75%" style="float:centered" -->
+<!--  alt ="Technologies (6): AJAX" />  -->
+<!-- </div> -->
 
-<div align="center"> 
- <img src="images/ajax.jpeg" height="75%" style="float:centered"
- alt ="Technologies (6): AJAX" /> 
-</div>
+<!-- - AJAX = Asynchronous JavaScript And XML. -->
+<!-- - AJAX is a group of technologies that uses a combination of: -->
+<!--     + A user built-in XMLHttpRequest object (to request data from a web server) -->
+<!--     + JavaScript and HTML DOM (to display or use the data) -->
 
-- AJAX = Asynchronous JavaScript And XML.
-- AJAX is a group of technologies that uses a combination of:
-    + A user built-in XMLHttpRequest object (to request data from a web server)
-    + JavaScript and HTML DOM (to display or use the data)
-    
-- AJAX allows web pages to be updated asynchronously by exchanging data with a web server behind the scenes. 
-- This means that it is possible to update parts of a web page, without reloading the whole page.
+<!-- - AJAX allows web pages to be updated asynchronously by exchanging data with a web server behind the scenes.  -->
+<!-- - This means that it is possible to update parts of a web page, without reloading the whole page. -->
 
----
+<!-- --- -->
 
-# Technologies (7): Regular Expressions
+# Technologies (6): Regular Expressions
 
 <br>
 <div align="center"> 
@@ -211,6 +213,7 @@ knitr::include_graphics("images/webTechnologies.png")
 # So what is web scraping?
 
 - Web scraping (web harvesting or web data extraction) is how we name computer software techniques for extracting information from websites.
+
     + See [Wikipedia](https://en.wikipedia.org/wiki/Web_scraping)
 
 - Web scraping focuses on the *transformation of unstructured data* on the web, typically in web format such as HTML, XML or JSON, into *structured* data that can be stored and analyzed in a central local database or spreadsheet.
@@ -221,9 +224,8 @@ knitr::include_graphics("images/webTechnologies.png")
 
 # Understanding web communication: http
 
-
 <div align="center"> 
- <img src="images/client-server.png" style="float:centering"
+ <img src="images/client-server.png"  style="float:centering"
  alt ="Undrestanding web browsing" /> 
 </div>
 
@@ -235,21 +237,22 @@ knitr::include_graphics("images/webTechnologies.png")
 
 ---
 
-# Requesting & retrieving information directly 
+# Requesting information directly 
 
 <div align="center"> 
- <img src="images/client-server-retrieve.png" style="float:centering"
+ <img src="images/client-server-retrieve.png" width=70% style="float:centering"
  alt ="Undrestanding web browsing" /> 
 </div>
-
-- Information retrieval can be made directly 
-    + in raw form through http GET requests
-    + through an Application Programming Interface (API)
-- There exist many APIs for retrieving data from "typical" places such as Twitter, Amazon, Linkedin, etc.
-    + APIs require an authorization/user identification
-- R packages 
-    + `httr`, `Rcurl`
-    + `tweeteR`, `Rlinkedin`
+- Two ways for direct information retrieval:
+  - in raw form through http GET requests
+  - through an Application Programming Interface (API)
+      - many APIs for retrieving data from "typical" places such as Twitter, Amazon, Linkedin, etc. 
+          - In R: "RLinkedin" "TwiteR" etc. packages
+      - APIs require an authorization/user identification
+    
+<!-- - R packages  -->
+<!--     + `httr`, `Rcurl` -->
+<!--     + `tweeteR`, `Rlinkedin` -->
 
 ---
 
@@ -263,9 +266,7 @@ knitr::include_graphics("images/webTechnologies.png")
 - Parser tools extract information from the response sent by the server to the browser.
 - The response is usually an HTML / XML document.
 - Parsers exploit the hierarchichal structure of HTML / XML to extract information and convert it into R objects
-- R packages
-    + `rvest`, `selectR`
-    + `XML`, `xml2`
+- R packages:  `rvest`, `selectR`,  `XML`, `xml2`
 
 ---
 
@@ -299,12 +300,12 @@ https://doi.org/10.1016/j.softx.2017.04.004
 # The scrapping process
 
 <div align="center"> 
- <img src="images/fromTheWebIntoR.png" height="75%" style="float:centered"/> 
+ <img src="images/fromTheWebIntoR.png" height="70%" style="float:centered"/> 
 </div>
 
 ---
 
-# Case Study 1: World heritage sites in danger
+# Example: Heritage sites in danger
 
 - The UNESCO is an organization of the United Nations which, among other things, fights for the preservation of the world's natural and cultural heritage. 
 - As November 2013 there  are 981 heritage sites, most of which of are man-made like the Pyramids of Giza, but also natural phenomena like the Great Barrier Reef are listed. 
@@ -360,17 +361,16 @@ https://doi.org/10.1016/j.softx.2017.04.004
 
 ---
 
-# Example 1c: R code
+# Example 1c: R code (1)
 
-
-```{r eval = FALSE}
+<small>
+```{r eval = FALSE, echo=TRUE}
 # load packages
 library(stringr); library(XML); library(maps)
 #--- parsing from locally stored HTML file
 heritage_parsed <- htmlParse("worldheritagedanger.htm")
 #--- Extract table from web page and select desired table
-danger_table <- readHTMLTable(heritage_parsed, stringsAsFactors = FALSE, which = 2) 
-#--- select and rename columns
+danger_table <- readHTMLTable(heritage_parsed, stringsAsFactors = FALSE, which = 2) #--- select and rename columns
 danger_table <- danger_table[,c(1,3,4,6,7)]
 colnames(danger_table) <- c("name","locn","crit","yins","yend")
 #--- Clean data
@@ -378,6 +378,16 @@ danger_table$crit <- ifelse(str_detect(danger_table$crit, "Natural")T, "nat", "c
 # cleanse years
 danger_table$yins <- as.numeric(danger_table$yins)
 danger_table$yend <- as.numeric(unlist(str_extract_all(danger_table$yend, "[[:digit:]]{4}$")))
+#--- get countries
+```
+</small>
+
+---
+
+# Example 1c: R code (2)
+
+<small>
+```{r eval = FALSE, echo=TRUE}
 #--- get countries
 reg <- "[[:alpha:] ]+(?=[[:digit:]])"
 danger_table$country <- str_extract(danger_table$locn , reg) 
@@ -393,7 +403,7 @@ map("world", col = "darkgrey", lwd = .5, mar = c(0.1,0.1,0.1,0.1))
 points(danger_table$x_coords, danger_table$y_coords, pch = pch, col = "black", cex = .8)
 box()
 ```
-
+</small>
 ---
 
 # Example 1d: We have an R data frame
@@ -416,15 +426,30 @@ box()
 
 ---
 
-# References and resources
+# References and resources (1)
 
+__Books__
 - [Automated Data Collection from the Web with R](http://www.r-datacollection.com/), by Munzer, Rubba, Meisner & Nyhulis. Wiley.
 - [XML and Web Technologies for Data Science with R](http://www.rxmlwebtech.org/). Deborah Nolan & Duncan Temple Lang. UseR!
 - [Introduction to Data Technologies](https://www.stat.auckland.ac.nz/~paul/ItDT/itdt-2013-03-26.pdf). Duncan Murdoch.
 
+__Courses__
+- [Datacamp: Web scraping in R](https://www.datacamp.com/courses/web-scraping-in-r)
+- [Learn to scrape any website with R](https://www.udemy.com/course/scrape-any-website-with-r/)
+---
+
+# References and resources (2)
+
+__Web documents/bookdown/etc.__
+
+- [Introduction to Computing with Data](https://www.gastonsanchez.com/intro2cwd/), particularly part IX, [Data Technologies](https://www.gastonsanchez.com/intro2cwd/datatech-intro.html)
+- [Web scraping with R](https://steviep42.github.io/webscraping/book/) by Steve Pittard
+
+
+__Tutorials/Blog posts/etc.__
+
 - [Getting Data from the Web with R](https://github.com/gastonstat/tutorial-R-web-data), by Gaston Sánchez.
 - [Web scraping for the humanities and social sciences](http://quantifyingmemory.blogspot.co.uk/2014/02/web-scraping-basics.html), Rolf Fredheim and Aiora Zabala.
-- [Web Scraping with R](http://cos.name/wp-content/uploads/2013/05/Web-Scraping-with-R-XiaoNan.pdf), by Xiao Nan.
 - [R-bloggers posts on *Web Scraping*](http://www.r-bloggers.com/?s=web+scraping)
 - And see also [CRAN Web Services and Technologies task view](https://cran.r-project.org/web/views/WebTechnologies.html)
 

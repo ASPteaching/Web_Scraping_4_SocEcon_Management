@@ -40,15 +40,25 @@ A variety of R packages will be used during the course. Install them in your sys
 
 ```{r eval=FALSE}
 # Rlibraries to be used in the Web Scraping course
-if(!require(rvest)) install.packages("rvest")
-if(!require(plyr)) install.packages("plyr")
-if (!require(twitteR)) install.packages("twitteR")
-if (!require(ROAuth)) install.packages("ROAuth")
-if (!require(tm)) install.packages("tm")
-if (! require(wordcloud) ) install.packages("wordcloud")
-if (! require(XML) ) install.packages("XML")
+if (!require(rvest)) install.packages("rvest")
+if (!require(dplyr)) install.packages("dplyr")
+if (!require(xml2) ) install.packages("xml2")
+if (!require(stringr) ) install.packages("stringr")
+if (!require(stringi) ) install.packages("stringi")
+if (!require(quadpRegex) ) install.packages("quadpRegex")
+if (!require(httr)) install.packages("httr")
+if (!require(jsonlite)) install.packages("jsonlite")
+if (!require(rselenium) ) install.packages("rselenium")
+###
+# if (!require(twitteR)) install.packages("twitteR")
+# if (!require(ROAuth)) install.packages("ROAuth")
+# if (!require(tm)) install.packages("tm")
+# if (! require(wordcloud) ) install.packages("wordcloud")
 ###
 if(!require(maps)) install.packages("maps")
-
 ```
+
+# Other requirements
+
+- Add the Selectorgadget feature to your chrome browser
 
