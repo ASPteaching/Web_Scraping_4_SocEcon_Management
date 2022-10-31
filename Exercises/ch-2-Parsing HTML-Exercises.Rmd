@@ -19,7 +19,7 @@ if (!require(rvest)) install.packages("rvest", dep=TRUE)
 require(rvest)
 ```
 
-# Scraping exercises
+# Scraping HTML (1) Scraping web pages
 
 This page contains several scraping exercises inspired, that is, copied, from [https://www.r-bloggers.com/web-scraping-exercises/](Web Scraping Exercises) also available in [https://www.r-exercises.com/start-here-to-learn-r/](https://www.r-exercises.com/start-here-to-learn-r/).
 
@@ -84,3 +84,33 @@ Build a data frame, where the first variables is "Word" and the second variables
 2. From here write a function to extract the authors list from an IMDB whose URL is providd
 3. Apply the function to the URLs list and
 4. Tabulate or plot
+
+# Scraping exercises 2 - Practicing with `rvest`
+
+## Exercise 1
+
+The USAPresidents.html file contains a list of recent US presidents and some of their characteristics.
+
+Read it into an object and, using `html_elements()`, select the  div named "first" in structured_html
+
+```{r}
+require(rvest)
+# get data
+myHTML<- read_html("data2scrap/USAPresidents.html")
+# Select the first div
+firstPresident <- myHTML %>% html_element('#first') %>% html_text2()
+```
+
+The resulting screen contains "invisible codes" that can be removed using `gsub` or `string::str_replace`
+
+```{r}
+library(stringr)
+cleanPresident <-firstPresident %>% str_replace_all("\n","")%>%
+  str_replace("\r","") %>%   
+  str_replace("\r",": ") %>%   
+  str_replace("\r","; ") %>% 
+  str_replace("\r",".")
+firstPresident
+cleanPresident
+```
+

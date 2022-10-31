@@ -108,7 +108,7 @@ name: Introduction
 
 # HTML, CSS and javascript
 
-```{r}
+```{r out.width="90%"}
 knitr::include_graphics("images/HTML_CSS_javascript.png")
 ```
 
@@ -197,10 +197,12 @@ knitr::include_graphics("images/htmlExample4.png")
 ```{r, out.width="90%"}
 knitr::include_graphics("images/htmlExample7.png")
 ```
+
+<small>
 - Hyperlinks allow linking any two pages independently of their physical location 
 - Link may be to pages or to some elements of a given page.
 - Elements in the same page can also be linked
-
+</small>
 ---
 
 
@@ -364,6 +366,7 @@ knitr::include_graphics("images/CSSimage7.png")
 knitr::include_graphics("images/CSSimage9.png")
 ```
 Original file in [this link](https://gist.github.com/eirikbakke/1059266/d81dba46c76169c2b253de0baed790677883c221)
+
 ---
 #  A CSS cheatsheet
 
