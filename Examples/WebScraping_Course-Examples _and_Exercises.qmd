@@ -1,0 +1,200 @@
+---
+title: "Web Scraping Course - Examples & Exercises"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+editor: visual
+---
+
+# Ch 1: **Introduction to HTML and Web Scraping**
+
+```{r}
+library(rvest)
+library(magrittr)
+```
+
+1.  Take the `html_excerpt_raw` variable and turn it into an HTML document that R understands using a function from the `rvest` package.
+
+```{r}
+html_excerpt_raw <- '
+<html> 
+  <body> 
+    <h1>Web scraping is cool</h1>
+    <p>It involves writing code – be it R or Python.</p>
+    <p><a href="https://datacamp.com">DataCamp</a> 
+		has courses on it.</p>
+  </body> 
+</html>'
+# Turn the raw excerpt into an HTML document R understands
+html_excerpt <- read_html(html_excerpt_raw)
+html_excerpt
+```
+
+2.  Extract the `ol` node from the `list_html` document, using the singular version of the `rvest` function that can be used to query nodes.
+
+    ```{r}
+    list_raw_html <- '<ul>
+    <li>Learn HTML</li>
+    <li>Learn CSS</li>
+    <li>Learn R</li>
+    <li>Scrape everything!*</li>
+    </ul>'
+    # Read in the corresponding HTML string
+    list_html <- read_html(list_raw_html)
+    # Extract the ol node
+    ol_node <- list_html %>% 
+    	html_element('ol')
+    ```
+
+3.  Extract all the `a` nodes *that are within the bulleted list*, using `html_elements()`.
+
+    ```{r}
+    hyperlink_raw_html <- '<h3>Helpful links</h3>
+    <ul>
+      <li><a href="https://wikipedia.org">Wikipedia</a></li>
+      <li><a href="https://dictionary.com">Dictionary</a></li>
+      <li><a href="https://duckduckgo.com">Search Engine</a></li>
+    </ul>'
+    # Extract all the a nodes from the bulleted list
+    links <- hyperlink_raw_html %>% 
+      read_html() %>% 
+      html_elements("a")
+    ```
+
+4.  Recover the table from the page: \[https://en.wikipedia.org/wiki/List_of_World_Heritage_in_Danger\](https://en.wikipedia.org/wiki/List_of_World_Heritage_in_Danger)
+
+    ```{r eval=FALSE}
+    aURL <- "https://en.wikipedia.org/wiki/List_of_World_Heritage_in_Danger"
+    mainTable <- read_html(url) # %>% 
+      rvest::html_table() %>% 
+      rvest::html_text2()
+      
+        
+    ```
+
+5.  Assume you have stored the mountains table in an html object
+
+<!-- -->
+
+    | Mountain      | Height | First ascent | Country      |
+    |:--------------|:-------|:-------------|:-------------|
+    | Mount Everest | 8848   | 1953         | Nepal, China |
+    | \...          |        |              |              |
+
+Turn the `table` into a data frame called `mountains`.
+
+    ```{r}
+    mountains_html <-read_html("<table id='clean'>
+    <tr>
+      <th>Mountain</th>
+      <th>Height</th>
+      <th>First ascent</th>
+      <th>Country</th>
+    </tr>
+    <tr>
+      <td>Mount Everest</td>
+      <td>8848</td>
+      <td>1953</td>
+      <td>Nepal, China</td>
+    </tr>
+    <tr>
+      <td>...</td>
+      </tr>
+      </table>")
+    # Extract the "clean" table into a data frame 
+    mountains <- mountains_html %>% 
+      html_element("table#clean") %>% 
+      html_table()
+
+    mountains
+    ```
+
+5.  Read in `languages_raw_html`. Select all `div` *and* `p` elements in this HTML
+
+<!-- -->
+
+    ```{r}
+    languages_raw_html <- read_html('<html> 
+      <body> 
+        <div>Python is perfect for programming.</div>
+        <p>Still, R might be better suited for data analysis.</p>
+        <small>(And has prettier charts, too.)</small>
+      </body> 
+    </html>')
+    # Read in the HTML
+    languages_html <- languages_raw_html
+    # Select the div and p tags and print their text
+    languages_html %>%
+    	html_elements('div p') %>%
+    	html_text()
+    ```
+
+6.  An html file has been read in for you with `read_html()` and is available through `structured_html.`Using `html_elements()`, find the shortest possible selector to select the first `div` in `structured_html`.
+
+```{r}
+    structured_html <- read_html("<html>
+  <body>
+    <div id = 'first'>
+      <h1 class = 'big'>Joe Biden</h1>
+      <p class = 'first blue'>Democrat</p>
+      <p class = 'second blue'>Male</p>
+    </div>
+    <div id = 'second'>...</div>
+    <div id = 'third'>
+      <h1 class = 'big'>Donald Trump</h1>
+      <p class = 'first red'>Republican</p>
+      <p class = 'second red'>Male</p>
+    </div>
+  </body>
+</html>")
+    # Select the first div
+    structured_html %>%
+      html_elements('#first')
+```
+
+7.  An html file has been read in for you with `read_html()` and is available through `nested_html.`Select the last `p` node within the `div`.
+
+```{r}
+        nested_html<- read_html("<html>
+          <body>
+            <div>
+              <p class = 'text'>A sophisticated text [...]</p>
+              <p class = 'text'>Another paragraph following [...]</p>
+              <p class = 'text'>Author: T.G.</p>
+            </div>
+            <p>Copyright: DC</p>
+          </body>
+        </html>")
+        # This time for real: Select only the last node of the p's wrapped by the div
+        nested_html  %>% 
+        	html_elements('p.text:last-child')
+```
+
+8.  Here, your goal is to scrape a list (contained in the languages_html document) of all mentioned computer languages, but without the accompanying information in the sub-bullets.
+
+```{r}
+languages_html <- read_html("<ul id = 'languages'>
+    <li>SQL</li>
+    <ul>    
+      <li>Databases</li>
+      <li>Query Language</li>
+    </ul>
+    <li>R</li>
+    <ul>
+      <li>Collection</li>
+      <li>Analysis</li>
+      <li>Visualization</li>
+    </ul>
+    <li>Python</li>
+  </ul>'")
+```
+
+For that you can use the `child`combinator "\>"
+
+```{r}
+# Extract only the text of the computer languages (without the sub lists)
+languages_html %>% 
+	html_elements('ul#languages > li') %>% 
+	html_text2()
+```

@@ -40,9 +40,11 @@ heritage_parsed <- htmlParse("https://en.wikipedia.org/wiki/List_of_World_Herita
 
 # parsing from locally stored HTML file
 heritage_parsed <- htmlParse("Examples/World_Heritage/worldheritagedanger.htm")
+#class(heritage_parsed)
 ```
 
 ## Parsing the object
+
 We have obtained an object with all that's in the web page.
 Next we extract *HTML tables* from this object.
 

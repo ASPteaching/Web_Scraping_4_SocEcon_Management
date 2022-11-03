@@ -1,0 +1,128 @@
+---
+title: 'Anàlisi dels acudits de Jaimito: scraping'
+author: "Àngel Rosado i Mónica Salgado"
+date: "20/5/2017"
+output:
+  html_document: default
+  pdf_document:
+    includes:
+      before_body: Scraping.tex
+    keep_tex: no
+    number_sections: yes
+header-includes:
+- \usepackage{listings}
+- \definecolor{gray}{rgb}{0.5,0.5,0.5}
+- \lstset{ basicstyle=\small\ttfamily, commentstyle=\color{gray}, keywordstyle=\color{blue},
+  stringstyle=\color{green} }
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+Els acudits de Jaimito són coneguts per tothom, i tothom sap que no són gaire bons. A aquest treball ens proposem fer scraping d'una web d'acudits i veure de manera gráfica quines són les paraules més comuns a aquest tipus d'acudits.
+
+Per començar, carregam els paquets que ens faran falta per a tot el procediment: el paquet \textbf{rvest} per a fer \textit{scraping}, el paquet \textbf{string} per a fer mineria de dades emprant expresions regulars, el paquet \textbf{tm} per a fer la mineria de dades i els paquets \textbf{RColorBrewer} i \textbf{wordcloud} per a fer gràfics.
+```{r, message=FALSE}
+library(rvest)
+library(stringr)
+library(tm)
+library(wordcloud)
+library(RColorBrewer)
+```
+
+Ara, farem l'scraping dels acudits de la pàgina "http://www.chistescortosbuenos.com/chistes-de-jaimito-11" i agarem els acudits de la pàgina 1, 2 i 3 (en total 45 acudits). Per trobar l'etiqueta per saber que havíem de descarregar, hem emprat l'extensió del navegador "Selector gadget" que ens ha dit que haviem de descarregar els elements etiquetats amb '.chiste'.
+
+```{r}
+url <- c('http://www.chistescortosbuenos.com/chistes-de-jaimito-11',
+        'http://www.chistescortosbuenos.com/chistes-de.php?cat=11&page=2',
+        'http://www.chistescortosbuenos.com/chistes-de.php?cat=11&page=3')
+chistes <- c()
+for(i in 1:3){
+  chistes5 <- read_html(url[i]) %>% 
+    html_nodes('.chiste') %>% 
+    html_text()
+  chistes <- c(chistes,chistes5[2:16])
+}
+```
+
+## Selecció de l'acudit
+A aquesta secció eliminarem dels acudits baixats els elements que no ens interesen
+- El principi, on possa el dia i hora en què es va pujar al web.
+- El final on hi possa la paraula "Compartir". 
+Per fer-ho emprarem expressions regulars i cercarem  un any (201X) en el primer cas i la paraula "Compartir" en el segon.
+```{r}
+chistes2 <- c()
+
+for(i in 1:length(chistes)){
+  text1 <- chistes[i]
+  my_pattern <- "201*[0-9]"
+  string_pos1 <- str_locate(text1, my_pattern)
+  my_pattern2 <- "Compartir"
+  string_pos2 <- str_locate(text1, my_pattern2)
+  chistes2[i] <- substr(text1,start = string_pos1+4,string_pos2-1)
+}
+chistes2
+```
+
+
+## Un poc de text mining
+Ara, introduïm cadascun dels acudits en un objecte "VCorpus".
+```{r}
+chistes.corpus <- Corpus(VectorSource(chistes2))
+```
+
+A continuació eliminam els espais en blanc dels acudits ja que no ens donaran informació que sigui relevant. També canviam les lletres majúscules per minúscules i eliminam els signes de puntuació.
+```{r}
+#Eliminam els espais blancs
+chistes.corpus <- tm_map(chistes.corpus, stripWhitespace)
+
+#Canviam les lletres majúscules per minúscules.
+chistes.corpus <- tm_map(chistes.corpus, content_transformer(tolower))
+
+#Eliminam bots de linia entre altres coses.
+codigos <- "\u0080|\u0085|\u0093|\u0094|\u0096|\u0096|\u0097"
+chistes.corpus<- tm_map(chistes.corpus, content_transformer(gsub),
+                   pattern = codigos, replacement = "")
+
+#Eliminam els signes de puntuació.
+replacePunctuation <- content_transformer(function(x) 
+  {return (gsub("[[:punct:]]"," ", x))})
+chistes.corpus <- tm_map(chistes.corpus, replacePunctuation )
+```
+
+També eliminam les paraules buides de contingut o \textit{stopwords} que venen per defecte al paquet de R en castellà i a les que afegirem les paraules 'pues', 'dice', 'cómo', 'tan', 'mientras' "niño", "niña", "niños" i "niñas" que hem notat que no hi sortien a les de R i que tampoc aporten res. Per acabar el tractament previ dels acudits eliminarem els accents que hi apareixen, així evitarem problemes futurs de que una mateixa paraula escrita dues vegades, a una li hagin possat accent i a altre no. 
+
+```{r}
+excluidas <- c(stopwords("spanish"), "pues", "dice", "cómo", "tan",
+               "mientras", "niño", "niña", "niños", "niñas")
+chistes.corpus <- tm_map(chistes.corpus, removeWords, excluidas)
+
+accents = c("á","é","í","ó","ú")
+sense_accents = c("a","e","i","o","u")
+for (i in 1:5){
+  chistes.corpus <- tm_map(chistes.corpus, content_transformer(gsub),
+                     pattern = accents[i], replacement = sense_accents[i])
+}
+```
+
+Per acabar farem un núvol de paraules amb les paraules dels acudits per tenir de manera ràpida i molt visual quines paraules apareixen més.
+```{r}
+#Ara feim un núvol de paraules amb les paraules que apareixen.
+
+filtrat <- function(corpus, dict=NULL) {
+  if (is.null(dict))
+    TermDocumentMatrix(corpus)
+  else
+    TermDocumentMatrix(corpus, control = list(dictionary = dict))
+}
+
+p11 <- filtrat(chistes.corpus)
+veces <- 1
+mChistes1 <- as.matrix(p11)
+frecuencias1 <- sort(rowSums(mChistes1), decreasing = TRUE)
+pal21 <- brewer.pal(8,"Dark2")
+set.seed(21746)
+wordcloud(words=names(frecuencias1), freq=frecuencias1, scale = c(5, 0.5), min.freq=veces,
+          random.order=F, colors=pal21)
+
+```

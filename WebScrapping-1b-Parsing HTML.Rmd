@@ -51,7 +51,26 @@ knitr::knit_hooks$set(mysize = function(before, options, envir) {
 ```
 
 
-# Introduction
+# Outline
+
+.columnwide[
+  ### 1) [Introduction: What is _parsing_](#Introduction)
+  ### 2) [Parsing HTML with `rvest``](#rvest)
+  ### 3) [Using CSS selectors to locate information](#css)
+  ### 4) [References and Resources](#Resources)
+]
+
+---
+
+class: inverse, middle, center
+
+name: Introduction
+
+# Introduction: What is _parsing_?
+
+---
+
+# Introduction to parsing
 
 - Scraping HTML pages usually done in two steps: 
     - First, desired content from the Web is examined to determine if it is actionable to further analyses.
@@ -166,29 +185,36 @@ knitr::include_graphics("images/htmlHierarchy.png")
 
 ---
 
-<!-- # Scrapping tools (I): The `XML` package -->
+# Scrapping tools (I): The `XML` package
 
 
-<!-- - The `XML` package provides an interface to `libxml2` a powerful parsing library written in C. -->
-<!-- - The package is designed for two main purposes -->
-<!--     + parsing xml / html content -->
-<!--     + writing xml / html content (*we wonn't cover this*) -->
+- The `XML` package provides an interface to `libxml2` a powerful parsing library written in C.
+- The package is designed for two main purposes
+    + parsing xml / html content
+    + writing xml / html content (*we wonn't cover this*)
 
-<!-- --- -->
+---
 
-<!-- # What can be achieved with `XML`? -->
+# What can be achieved with `XML`?
 
-<!-- - The `XML` package is useful at 4 major types of tasks: -->
+- The `XML` package is useful at 4 major types of tasks:
 
-<!--   1. parsing xml / html content -->
-<!--   2. obtaining descriptive information about parsed contents -->
-<!--   3. navigating the tree structure (ie *accessing its components*) -->
-<!--   4. querying and extracting data from parsed contents -->
+  1. parsing xml / html content
+  2. obtaining descriptive information about parsed contents
+  3. navigating the tree structure (ie *accessing its components*)
+  4. querying and extracting data from parsed contents
 
-<!-- - The `XML` package can be used for both XML and HTML parsing.  -->
+- The `XML` package can be used for both XML and HTML parsing.
 
-<!-- --- -->
+---
 
+class: inverse, middle, center
+
+name: rvest
+
+# Parsing HTML with `rvest`
+
+---
 
 # Scraping tools: The `rvest` package
 
@@ -206,7 +232,7 @@ knitr::include_graphics("images/htmlHierarchy.png")
 
 # Basic `rvest` capabilities
 
-- Get the data: Parse an html document from a url, a file on disk or a string containing html with `read_html()` **from he `xml2`package**.<tab>   [+info](https://www.rdocumentation.org/packages/xml2/versions/1.3.3/topics/read_xml)
+- Get the data: Parse an html document from a url, a file on disk or a string containing html with `read_html()` (from the `xml2` package!).<tab>   [+info](https://www.rdocumentation.org/packages/xml2/versions/1.3.3/topics/read_xml)
 
 - Extract elements using `html_element(s)()`.  [+info](https://www.rdocumentation.org/packages/rvest/versions/1.0.3/topics/html_element)
 
@@ -272,7 +298,7 @@ list_of_links <- '<h3>Useful links</h3>
 ```
 ]
 .pull-right[
-Extract all the a nodes from the bulleted list.
+Extract all the "a" nodes from the bulleted list.
 ```{r eval=FALSE}
 
 links <- list_of_links %>% 
@@ -282,4 +308,242 @@ links <- list_of_links %>%
 ]
 
 ---
+# Examples (3): html_table()
+
+.pull-left[
+```{r}
+sample1 <- minimal_html("<table>
+  <tr><th>Col A</th><th>Col B</th></tr>
+  <tr><td>1</td><td>x</td></tr>
+  <tr><td>4</td><td>y</td></tr>
+  <tr><td>10</td><td>z</td></tr>
+</table>")
+```
+]
+.pull-right[
+```{r eval=TRUE}
+sample1 %>%
+  html_element("table") %>%
+  html_table()
+```
+]
+
+---
+
+# Examples (3b): more `html_table()`
+
+
+```{r}
+url <- "https://en.wikipedia.org/wiki/List_of_World_Heritage_in_Danger"
+pageTables <- read_html (url)  %>% 
+  html_elements("table") %>%
+  html_table() 
+M2<- pageTables[[2]]
+head(M2, n=3)
+```
+
+---
+
+class: inverse, middle, center
+
+name: css
+
+# Using CSS selectors to locate information
+
+---
+
+# Improving location using css selectors
+
+- Functions such as `html_elements` or ` html_table` return one or all the elements of a given kind.
+- To decide _which objects to select_ we must identify them.
+- This may be done using CSS selectors that have been used in the page to give structure ("tags") or change properties ("class", "id") of objects.
+---
+
+# Examples 4: Selection with tags
+
+
+- We can select the elements of a given type letting `html_elements`know which type it is.
+
+<div style="font-size:11pt">
+.pull-left[
+```{r}
+  myHTMLdoc <- '<html> 
+  <body> 
+    <div>Python </div>
+    <p> Is perfect for programming.</p>
+    <p> A nicely built language </p>
+    <div>R </div>
+    <p>Better for data analysis.</p>
+    <p>Has prettier charts, too.</p>
+  </body> 
+</html>'
+```
+]
+.pull-right[
+```{r}
+theLanguages <- read_html(myHTMLdoc) %>%
+  html_elements('div') %>%
+  html_text2()
+theLanguages
+```
+
+]
+
+---
+
+# Examples 4b: Multiple selection
+
+- The same idea can be used to select elements that have one of several tags
+
+<div style="font-size:11pt">
+.pull-left[
+```{r}
+  myHTMLdoc <- '<html> 
+  <body> 
+    <div>Python </div>
+    <p> Is perfect for programming.</p>
+    <small> A nicely built language </small>
+    <div>R </div>
+    <p>Better for data analysis.</p>
+    <small>Has prettier charts, too.</small>
+  </body> 
+</html>'
+```
+]
+.pull-right[
+```{r}
+theLanguages <- read_html(myHTMLdoc) %>%
+  html_elements('div, small') %>%
+  html_text2()
+theLanguages
+```
+
+]
+</div>
+---
+
+# Examples 5: Selection with class/id
+
+- After inspecting the page it can be seen that the table we are interested in is of class "wikitable"
+- This is informed to `html_element` as: _type.class_
+
+<div style="font-size:11pt">
+
+```{r}
+url <- "https://en.wikipedia.org/wiki/List_of_World_Heritage_in_Danger"
+oneTable <- read_html (url)  %>% 
+  html_element("table.wikitable") %>%
+  html_table() 
+head(oneTable, n=3)
+```
+
+---
+# Combining selectors
+
+- Selectors can be combined using operators as follows:
+  `selector1 {space|>|+|~} selector2`
+
+- There are four types of combinators
+  - `space`: Descendant combinator
+  - `>`: Child combinator
+  - `+`: Adjacent sibling combinator
+  - `~`: General sibling combinator
+
+---
+
+# Examples 6: Combining selectors
+
+
+<div style="font-size:13pt">
+.pull-left[
+```{r}
+myhtml<- "<html>
+<body>
+<div class = 'first'>
+<a>A link.</a>
+<p>The first paragraph with
+<a>another link</a>.
+</p>
+</div>
+<div>
+Not an actual paragraph,
+but with a <a href='#'>link</a>.
+</div>
+</body>
+</html>"
+```
+]
+.pull-right[
+
+```{r eval=FALSE}
+htmlObj<- myhtml %>% read_html()
+htmlObj %>% 
+  html_elements('div.first a')
+htmlObj %>% 
+  html_elements('div.first > a')
+htmlObj %>% 
+  html_elements('div.first + div')
+htmlObj %>% 
+  html_elements('div.first ~ div')
+```
+
+]
+</div>
+---
+
+# Examples 7: Combining selectors
+
+
+<div style="font-size:13pt">
+.pull-left[
+```{r}
+myhtml<- '<html>
+  <body>
+    <div class="first section">
+      Some text with a <a href="#">link</a>.
+    </div>
+    <div class="second section">
+      Some text with <a href="#">another link</a>.
+      <div class="first paragraph">Some text.</div>
+      <div class="second paragraph">Some more text.
+        <div>...</div>
+      </div>
+    </div>
+  </body>
+</html>'
+```
+]
+.pull-right[
+
+- Select all divs that descend from another div.
+- This can be done easily:
+```{r eval=FALSE}
+htmlObj<- myhtml %>% read_html()
+# Select the three divs with a simple selector
+htmlObj %>%
+	html_elements('div div')
+```
+
+- Or more complicated:
+
+```{r eval=FALSE}
+# ComplexSelect
+htmlObj %>%
+	html_elements('.first + .second > div, 
+	              div.second.paragraph > div')
+```
+
+]
+</div>
+---
+
+class: inverse, middle, center
+
+name: Resources
+
+# References and Resources
+
+---
+
+# Resources
  

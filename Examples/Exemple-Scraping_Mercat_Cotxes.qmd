@@ -1,0 +1,27 @@
+---
+title: "Scraping Mercat de cotxes"
+author: "Alex Sánchez"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+# Presentació
+
+Aquest exemple està inspirat en un cas disponible a [https://rpubs.com/Juve_Campos/scrapVehiculosMercadoLibre](https://rpubs.com/Juve_Campos/scrapVehiculosMercadoLibre) però adaptat a una web local i actualitzada.
+
+# Definició del problema
+
+El problema de partida es suposar que desitgem adquirir un cert tipus de vehicle, per exemple un TOYOTA PRIUS. Volem comparar entre les diferents pàgines disponibles per trobar la millor oferta.
+
+Per a l'exemple els buscarem en la web [Autocasión](https://www.autocasion.com/).
+
+Volem recopilar la informació següent:
+
+- Model del vehicle
+- Els detalls del vehicle
+- Preu en euros.
+- Venedor a qui adquirir-lo.
+- Imatge o fotografia del vehicle
+
+# Localització de la informació
+.

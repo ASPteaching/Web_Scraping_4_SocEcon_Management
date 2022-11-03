@@ -1,0 +1,27 @@
+Project assessment proposal
+Sergio Moreno and Lore Zumeta
+
+1.Goal:
+	Scrap some tables from the giro d'italia web page and try to answer the below questions. 
+
+-Which is the runners ranking (the top 20) of the last 3 Behobias (2014,2015,2016)
+-Which is the female proportion in each race (2014, 2015, 2016)?
+-How are the runners grouped according to their category? or the nationalities?
+
+2.The data source and web technology it is based upon:
+
+	We will use the official web page of the race: https://www.behobia-sansebastian.com/index.php
+	The classfications are exactly in this url: http://clasificacion.behobia-sansebastian.com/oficial.php?accion=buscar&paginacion=&siguiente=&tipo=&lang=&ano=2016&categoria=&nombre=&apellido=&localidad=&dorsal=&buscar=Buscar#ancla
+
+It is written in html.
+
+3.The approach/technology that you will use for downloading:
+
+	We will use the R package rvest and the html file will be parsed by means of read_html() function.
+
+4.How you plan to clean the data (scraping):
+
+We will try to clean the data constructing tables (or data frames), for that purpose regular expressions will be useful. We will need to create a function due to classifications of different years are in different addresses. A function we will compute the data cleanising in a more automatic way.
+
+5.How you would analyze the extracted information:
+We will analyze by doing some descriptive analysis and plotting some graphics.

@@ -55,7 +55,26 @@ span.small {
 
 
 
-# Introduction
+# Outline
+
+.columnwide[
+  ### 1) [Introduction: What is _parsing_](#Introduction)
+  ### 2) [Parsing HTML with `rvest``](#rvest)
+  ### 3) [Using CSS selectors to locate information](#css)
+  ### 4) [References and Resources](#Resources)
+]
+
+---
+
+class: inverse, middle, center
+
+name: Introduction
+
+# Introduction: What is _parsing_?
+
+---
+
+# Introduction to parsing
 
 - Scraping HTML pages usually done in two steps: 
     - First, desired content from the Web is examined to determine if it is actionable to further analyses.
@@ -150,8 +169,8 @@ myHTML
 ```
 ## {html_document}
 ## &lt;html&gt;
-## [1] &lt;head&gt;\n&lt;meta http-equiv="Content-Type" content="text/html; charset=UTF-8"&gt;\n&lt;t ...
-## [2] &lt;body&gt;\n&lt;div id="R Inventor" lang="english" date="June/2003"&gt;\n  &lt;h1&gt;Robert Gen ...
+## [1] &lt;head&gt;\n&lt;meta http-equiv="Content-Type" content="text/html; charset=UTF-8"&gt;\n&lt;title&gt;Collected R wisdom ...
+## [2] &lt;body&gt;\n&lt;div id="R Inventor" lang="english" date="June/2003"&gt;\n  &lt;h1&gt;Robert Gentleman&lt;/h1&gt;\n  &lt;p&gt;&lt;i&gt;'W ...
 ```
 
 ---
@@ -199,29 +218,36 @@ knitr::include_graphics("images/htmlHierarchy.png")
 
 ---
 
-&lt;!-- # Scrapping tools (I): The `XML` package --&gt;
+# Scrapping tools (I): The `XML` package
 
 
-&lt;!-- - The `XML` package provides an interface to `libxml2` a powerful parsing library written in C. --&gt;
-&lt;!-- - The package is designed for two main purposes --&gt;
-&lt;!--     + parsing xml / html content --&gt;
-&lt;!--     + writing xml / html content (*we wonn't cover this*) --&gt;
+- The `XML` package provides an interface to `libxml2` a powerful parsing library written in C.
+- The package is designed for two main purposes
+    + parsing xml / html content
+    + writing xml / html content (*we wonn't cover this*)
 
-&lt;!-- --- --&gt;
+---
 
-&lt;!-- # What can be achieved with `XML`? --&gt;
+# What can be achieved with `XML`?
 
-&lt;!-- - The `XML` package is useful at 4 major types of tasks: --&gt;
+- The `XML` package is useful at 4 major types of tasks:
 
-&lt;!--   1. parsing xml / html content --&gt;
-&lt;!--   2. obtaining descriptive information about parsed contents --&gt;
-&lt;!--   3. navigating the tree structure (ie *accessing its components*) --&gt;
-&lt;!--   4. querying and extracting data from parsed contents --&gt;
+  1. parsing xml / html content
+  2. obtaining descriptive information about parsed contents
+  3. navigating the tree structure (ie *accessing its components*)
+  4. querying and extracting data from parsed contents
 
-&lt;!-- - The `XML` package can be used for both XML and HTML parsing.  --&gt;
+- The `XML` package can be used for both XML and HTML parsing.
 
-&lt;!-- --- --&gt;
+---
 
+class: inverse, middle, center
+
+name: rvest
+
+# Parsing HTML with `rvest`
+
+---
 
 # Scraping tools: The `rvest` package
 
@@ -239,7 +265,7 @@ knitr::include_graphics("images/htmlHierarchy.png")
 
 # Basic `rvest` capabilities
 
-- Get the data: Parse an html document from a url, a file on disk or a string containing html with `read_html()` **from he `xml2`package**.&lt;tab&gt;   [+info](https://www.rdocumentation.org/packages/xml2/versions/1.3.3/topics/read_xml)
+- Get the data: Parse an html document from a url, a file on disk or a string containing html with `read_html()` (from the `xml2` package!).&lt;tab&gt;   [+info](https://www.rdocumentation.org/packages/xml2/versions/1.3.3/topics/read_xml)
 
 - Extract elements using `html_element(s)()`.  [+info](https://www.rdocumentation.org/packages/rvest/versions/1.0.3/topics/html_element)
 
@@ -309,7 +335,7 @@ list_of_links &lt;- '&lt;h3&gt;Useful links&lt;/h3&gt;
 ```
 ]
 .pull-right[
-Extract all the a nodes from the bulleted list.
+Extract all the "a" nodes from the bulleted list.
 
 ```r
 links &lt;- list_of_links %&gt;% 
@@ -319,6 +345,295 @@ links &lt;- list_of_links %&gt;%
 ]
 
 ---
+# Examples (3): html_table()
+
+.pull-left[
+
+```r
+sample1 &lt;- minimal_html("&lt;table&gt;
+  &lt;tr&gt;&lt;th&gt;Col A&lt;/th&gt;&lt;th&gt;Col B&lt;/th&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;1&lt;/td&gt;&lt;td&gt;x&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;4&lt;/td&gt;&lt;td&gt;y&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;10&lt;/td&gt;&lt;td&gt;z&lt;/td&gt;&lt;/tr&gt;
+&lt;/table&gt;")
+```
+]
+.pull-right[
+
+```r
+sample1 %&gt;%
+  html_element("table") %&gt;%
+  html_table()
+```
+
+```
+## # A tibble: 3 × 2
+##   `Col A` `Col B`
+##     &lt;int&gt; &lt;chr&gt;  
+## 1       1 x      
+## 2       4 y      
+## 3      10 z
+```
+]
+
+---
+
+# Examples (3b): more `html_table()`
+
+
+
+```r
+url &lt;- "https://en.wikipedia.org/wiki/List_of_World_Heritage_in_Danger"
+pageTables &lt;- read_html (url)  %&gt;% 
+  html_elements("table") %&gt;%
+  html_table() 
+M2&lt;- pageTables[[2]]
+head(M2, n=3)
+```
+
+```
+## # A tibble: 3 × 9
+##   Name                            Image Location                 Crite…¹ Areah…² Year …³ Endan…⁴ Reason Refs 
+##   &lt;chr&gt;                           &lt;lgl&gt; &lt;chr&gt;                    &lt;chr&gt;   &lt;chr&gt;     &lt;int&gt; &lt;chr&gt;   &lt;chr&gt;  &lt;chr&gt;
+## 1 Abu Mena                        NA    EgyAbusir, Egypt.mw-par… Cultur… 182 (4…    1979 2001–   "Cave… [17]…
+## 2 Air and Ténéré Natural Reserves NA    Niger1Arlit Department,… Natura… 7,736,…    1991 1992–   "Mili… [20]…
+## 3 Ancient City of Aleppo          NA    Aleppo Governorate,  Sy… Cultur… 350 (8…    1986 2013–   "Syri… [22] 
+## # … with abbreviated variable names ¹​Criteria, ²​`Areaha (acre)`, ³​`Year (WHS)`, ⁴​Endangered
+```
+
+---
+
+class: inverse, middle, center
+
+name: css
+
+# Using CSS selectors to locate information
+
+---
+
+# Improving location using css selectors
+
+- Functions such as `html_elements` or ` html_table` return one or all the elements of a given kind.
+- To decide _which objects to select_ we must identify them.
+- This may be done using CSS selectors that have been used in the page to give structure ("tags") or change properties ("class", "id") of objects.
+---
+
+# Examples 4: Selection with tags
+
+
+- We can select the elements of a given type letting `html_elements`know which type it is.
+
+&lt;div style="font-size:11pt"&gt;
+.pull-left[
+
+```r
+  myHTMLdoc &lt;- '&lt;html&gt; 
+  &lt;body&gt; 
+    &lt;div&gt;Python &lt;/div&gt;
+    &lt;p&gt; Is perfect for programming.&lt;/p&gt;
+    &lt;p&gt; A nicely built language &lt;/p&gt;
+    &lt;div&gt;R &lt;/div&gt;
+    &lt;p&gt;Better for data analysis.&lt;/p&gt;
+    &lt;p&gt;Has prettier charts, too.&lt;/p&gt;
+  &lt;/body&gt; 
+&lt;/html&gt;'
+```
+]
+.pull-right[
+
+```r
+theLanguages &lt;- read_html(myHTMLdoc) %&gt;%
+  html_elements('div') %&gt;%
+  html_text2()
+theLanguages
+```
+
+```
+## [1] "Python" "R"
+```
+
+]
+
+---
+
+# Examples 4b: Multiple selection
+
+- The same idea can be used to select elements that have one of several tags
+
+&lt;div style="font-size:11pt"&gt;
+.pull-left[
+
+```r
+  myHTMLdoc &lt;- '&lt;html&gt; 
+  &lt;body&gt; 
+    &lt;div&gt;Python &lt;/div&gt;
+    &lt;p&gt; Is perfect for programming.&lt;/p&gt;
+    &lt;small&gt; A nicely built language &lt;/small&gt;
+    &lt;div&gt;R &lt;/div&gt;
+    &lt;p&gt;Better for data analysis.&lt;/p&gt;
+    &lt;small&gt;Has prettier charts, too.&lt;/small&gt;
+  &lt;/body&gt; 
+&lt;/html&gt;'
+```
+]
+.pull-right[
+
+```r
+theLanguages &lt;- read_html(myHTMLdoc) %&gt;%
+  html_elements('div, small') %&gt;%
+  html_text2()
+theLanguages
+```
+
+```
+## [1] "Python"                    "A nicely built language"   "R"                        
+## [4] "Has prettier charts, too."
+```
+
+]
+&lt;/div&gt;
+---
+
+# Examples 5: Selection with class/id
+
+- After inspecting the page it can be seen that the table we are interested in is of class "wikitable"
+- This is informed to `html_element` as: _type.class_
+
+&lt;div style="font-size:11pt"&gt;
+
+
+```r
+url &lt;- "https://en.wikipedia.org/wiki/List_of_World_Heritage_in_Danger"
+oneTable &lt;- read_html (url)  %&gt;% 
+  html_element("table.wikitable") %&gt;%
+  html_table() 
+head(oneTable, n=3)
+```
+
+```
+## # A tibble: 3 × 9
+##   Name                            Image Location                 Crite…¹ Areah…² Year …³ Endan…⁴ Reason Refs 
+##   &lt;chr&gt;                           &lt;lgl&gt; &lt;chr&gt;                    &lt;chr&gt;   &lt;chr&gt;     &lt;int&gt; &lt;chr&gt;   &lt;chr&gt;  &lt;chr&gt;
+## 1 Abu Mena                        NA    EgyAbusir, Egypt.mw-par… Cultur… 182 (4…    1979 2001–   "Cave… [17]…
+## 2 Air and Ténéré Natural Reserves NA    Niger1Arlit Department,… Natura… 7,736,…    1991 1992–   "Mili… [20]…
+## 3 Ancient City of Aleppo          NA    Aleppo Governorate,  Sy… Cultur… 350 (8…    1986 2013–   "Syri… [22] 
+## # … with abbreviated variable names ¹​Criteria, ²​`Areaha (acre)`, ³​`Year (WHS)`, ⁴​Endangered
+```
+
+---
+# Combining selectors
+
+- Selectors can be combined using operators as follows:
+  `selector1 {space|&gt;|+|~} selector2`
+
+- There are four types of combinators
+  - `space`: Descendant combinator
+  - `&gt;`: Child combinator
+  - `+`: Adjacent sibling combinator
+  - `~`: General sibling combinator
+
+---
+
+# Examples 6: Combining selectors
+
+
+&lt;div style="font-size:13pt"&gt;
+.pull-left[
+
+```r
+myhtml&lt;- "&lt;html&gt;
+&lt;body&gt;
+&lt;div class = 'first'&gt;
+&lt;a&gt;A link.&lt;/a&gt;
+&lt;p&gt;The first paragraph with
+&lt;a&gt;another link&lt;/a&gt;.
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;div&gt;
+Not an actual paragraph,
+but with a &lt;a href='#'&gt;link&lt;/a&gt;.
+&lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;"
+```
+]
+.pull-right[
+
+
+```r
+htmlObj&lt;- myhtml %&gt;% read_html()
+htmlObj %&gt;% 
+  html_elements('div.first a')
+htmlObj %&gt;% 
+  html_elements('div.first &gt; a')
+htmlObj %&gt;% 
+  html_elements('div.first + div')
+htmlObj %&gt;% 
+  html_elements('div.first ~ div')
+```
+
+]
+&lt;/div&gt;
+---
+
+# Examples 7: Combining selectors
+
+
+&lt;div style="font-size:13pt"&gt;
+.pull-left[
+
+```r
+myhtml&lt;- '&lt;html&gt;
+  &lt;body&gt;
+    &lt;div class="first section"&gt;
+      Some text with a &lt;a href="#"&gt;link&lt;/a&gt;.
+    &lt;/div&gt;
+    &lt;div class="second section"&gt;
+      Some text with &lt;a href="#"&gt;another link&lt;/a&gt;.
+      &lt;div class="first paragraph"&gt;Some text.&lt;/div&gt;
+      &lt;div class="second paragraph"&gt;Some more text.
+        &lt;div&gt;...&lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/body&gt;
+&lt;/html&gt;'
+```
+]
+.pull-right[
+
+- Select all divs that descend from another div.
+- This can be done easily:
+
+```r
+htmlObj&lt;- myhtml %&gt;% read_html()
+# Select the three divs with a simple selector
+htmlObj %&gt;%
+	html_elements('div div')
+```
+
+- Or more complicated:
+
+
+```r
+# ComplexSelect
+htmlObj %&gt;%
+	html_elements('.first + .second &gt; div, 
+	              div.second.paragraph &gt; div')
+```
+
+]
+&lt;/div&gt;
+---
+
+class: inverse, middle, center
+
+name: Resources
+
+# References and Resources
+
+---
+
+# Resources
  
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>

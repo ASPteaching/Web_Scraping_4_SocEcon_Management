@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Automating web scraping with R</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Alex Sanchez and Francesc Carmona" />
+    <script src="libs/header-attrs/header-attrs.js"></script>
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/remark-css/metropolis.css" rel="stylesheet" />
+    <link href="libs/remark-css/metropolis-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="css4WScourse.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# Automating web scraping with R
+]
+.author[
+### Alex Sanchez and Francesc Carmona
+]
+.institute[
+### Genetics Microbiology and Statistics Department <br> Universitat de Barcelona
+]
+.date[
+### October 2022
+]
+
+---
+
+
+&lt;style type="text/css"&gt;
+.remark-slide-content {
+    font-size: 28px;
+    padding: 1em 2em 1em 2em;
+}
+.left-code {
+  color: #777;
+  width: 38%;
+  height: 92%;
+  float: left;
+}
+.right-plot {
+  width: 60%;
+  float: right;
+  padding-left: 1%;
+}
+&lt;style&gt;
+span.small {
+  font-size: smaller;
+}
+&lt;/style&gt;
+
+
+
+# Outline
+
+.columnwide[
+  ### 1) [Introduction](#Introduction)
+  ### 2) [User defined functions](#functions)
+  ### 3) [Changing the execution flow](#loops)
+  ### 4) [References and Resources](#Resources)
+]
+
+---
+
+class: inverse, middle, center
+
+name: Introduction
+
+# Introduction
+
+---
+
+# Introduction
+
+- We have introduced R  as a *a language (a tool), to manage and analyze data*.
+- It is also a *programming language*
+  + It is simple and versatile
+  + The user can create new functions that adapt to their
+needs
+  + It is widely used (2nd most widely used in Data Science)
+  + Users provide the community with a high variety of solutions ("packages")
+  + As a programming language it is not, however, very efficient
+    
+---
+
+# Example 1: Why we need programming
+
+- Assume we have the diabetes dataset and want to make a summary of every variable it contains.
+- Some variables are "naturally" categorical   but the system cannot recognnize them, so we need to transform them.
+
+&lt;div style="font-size:14pt"&gt;
+
+```r
+library(readr)
+library(dplyr)
+library(janitor)
+MunicipisBARC &lt;- read_csv("datasets/MunicipisBARC.csv")
+MunicipisBreu &lt;- MunicipisBARC %&gt;% select (1,2,9,10,27,28) %&gt;%  
+  janitor::clean_names()
+summary(MunicipisBreu)
+```
+ 
+
+ 
+---
+
+# Example 1: Why we need programming
+
+&lt;div style="font-size:12pt"&gt;
+
+```
+## Rows: 311 Columns: 30
+## ── Column specification ────────────────────────────────────────────────────────
+## Delimiter: ","
+## chr  (23): _id, Codi INE, Nom del municipi, Nom curt del municipi, Article d...
+## dbl   (6): Codi de comarca, Codi de la província, Fax, Nombre d'habitants, E...
+## dttm  (1): _lastChange
+## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+```
+
+
+
+```r
+library(dplyr)
+```
+
+```
+## 
+## Attaching package: 'dplyr'
+```
+
+```
+## The following objects are masked from 'package:stats':
+## 
+##     filter, lag
+```
+
+```
+## The following objects are masked from 'package:base':
+## 
+##     intersect, setdiff, setequal, union
+```
+
+```r
+library(janitor)
+```
+
+```
+## 
+## Attaching package: 'janitor'
+```
+
+```
+## The following objects are masked from 'package:stats':
+## 
+##     chisq.test, fisher.test
+```
+
+```r
+MunicipisBreu &lt;- MunicipisBARC %&gt;% select (1,2,9,10,27,28) %&gt;%  
+  janitor::clean_names()
+summary(MunicipisBreu)
+```
+
+```
+##       id              codi_ine         codi_de_comarca nom_de_la_comarca 
+##  Length:311         Length:311         Min.   : 3.00   Length:311        
+##  Class :character   Class :character   1st Qu.: 7.00   Class :character  
+##  Mode  :character   Mode  :character   Median :17.00   Mode  :character  
+##                                        Mean   :19.73                     
+##                                        3rd Qu.:24.00                     
+##                                        Max.   :42.00                     
+##  nombre_dhabitants      extensio     
+##  Min.   :     27.0   Min.   :  0.40  
+##  1st Qu.:    734.5   1st Qu.: 11.01  
+##  Median :   3219.0   Median : 21.17  
+##  Mean   :  18375.3   Mean   : 24.90  
+##  3rd Qu.:  11010.5   3rd Qu.: 34.12  
+##  Max.   :1636732.0   Max.   :102.90
+```
+---
+# Example 1: Why we need programming
+
+- A simple solution: Convert text variables into factors.
+
+&lt;div style="font-size:12pt"&gt;
+
+
+```r
+library(forcats)
+MunicipisBreu$codi_de_comarca &lt;- as_factor(MunicipisBreu$codi_de_comarca)
+MunicipisBreu$nom_de_la_comarca &lt;- as_factor(MunicipisBreu$nom_de_la_comarca)
+
+summary(MunicipisBreu)
+```
+
+```
+##       id              codi_ine         codi_de_comarca       nom_de_la_comarca
+##  Length:311         Length:311         24     : 47     Osona          : 47    
+##  Class :character   Class :character   41     : 39     Vallès Oriental: 39    
+##  Mode  :character   Mode  :character   6      : 33     Anoia          : 33    
+##                                        7      : 30     Baix Llobregat : 30    
+##                                        11     : 30     Bages          : 30    
+##                                        14     : 30     Maresme        : 30    
+##                                        (Other):102     (Other)        :102    
+##  nombre_dhabitants      extensio     
+##  Min.   :     27.0   Min.   :  0.40  
+##  1st Qu.:    734.5   1st Qu.: 11.01  
+##  Median :   3219.0   Median : 21.17  
+##  Mean   :  18375.3   Mean   : 24.90  
+##  3rd Qu.:  11010.5   3rd Qu.: 34.12  
+##  Max.   :1636732.0   Max.   :102.90  
+## 
+```
+
+---
+
+- But how shoulde we proceed if there were dozens or hundreds of variables that need to be changed?
+- What if, besides, we were required to do ths repeatedly, on distinct files every day?
+
+- One solution may consists of:
+  - providing some way to encapsulate all steps needed to do the transformation 
+  - in such a way that they can be easily applied to a file everytime they are required.
+  
+- This is an example of a "program" that we would use to automate the preliminary steps we may do with any file of a certain type.
+
+
+---
+
+class: inverse, middle, center
+
+name: functions
+
+# User defined functions
+
+---
+
+# Functions are named expressions
+
+- A function is a set of statements organized together to perform a specific task. 
+- R has a large number of in-built functions.
+- Users can create their own functions, for those situations where they wish to apply the same set of instructions more than once.
+
+&lt;div style="font-size:18pt"&gt;
+
+```r
+function_name &lt;- function(arg_1, arg_2, ...) {
+   sentence 1
+   ...
+   sentence n
+   return(result)
+}
+```
+
+Go [here](https://www.tutorialspoint.com/r/r_functions.htm) for more information on functions.
+
+---
+# A preprocessing function
+
+We can encapsulate preprocessing in a function
+&lt;div style="font-size:16pt"&gt;
+
+```r
+preprocessa &lt;- function(unMunicipi){
+  unMunicipiBreu &lt;- unMunicipi %&gt;% select (1,2,9,10,27,28) %&gt;%  
+  janitor::clean_names()
+  unMunicipiBreu$codi_de_comarca &lt;- as_factor(unMunicipiBreu$codi_de_comarca)
+  unMunicipiBreu$nom_de_la_comarca &lt;- as_factor(unMunicipiBreu$nom_de_la_comarca)
+  return(unMunicipiBreu)
+}
+```
+
+And use it whenever is required
+
+```r
+BCNBreu &lt;- preprocessa(MunicipisBARC)
+GiroBreu &lt;- preprocessa(MunicipisGIRO)
+LleidaBreu &lt;- preprocessa(MunicipisLleida)
+```
+
+---
+
+# Scraping a recipes site
+
+- Imagine we are scraping a recipes site
+- The code below extracts (without cleaning it) a recipe for brownies.
+
+&lt;div style="font-size:12pt"&gt;
+
+```r
+library(rvest)
+```
+
+```
+## 
+## Attaching package: 'rvest'
+```
+
+```
+## The following object is masked from 'package:readr':
+## 
+##     guess_encoding
+```
+
+```r
+brownies &lt;- read_html("https://www.allrecipes.com/recipe/25080/mmmmm-brownies/")
+
+ingredients &lt;- brownies %&gt;% 
+  html_elements( ".mntl-structured-ingredients__list") %&gt;% 
+  html_text2() %&gt;% stringr::str_split("\\n")
+
+xpath4Directions &lt;- '//*[(@id = "mntl-sc-block_2-0-1")] | //*[(@id = "mntl-sc-block_2-0-9")] | //*[(@id = "mntl-sc-block_2-0-5")] | //*[(@id = "mntl-sc-block_2-0-2")] | //*[(@id = "recipe__steps-heading_1-0")] | //*[contains(concat( " ", @class, " " ), concat( " ", "mntl-structured-ingredients__list", " " ))]'
+
+directions &lt;-  brownies %&gt;% 
+  html_elements( xpath=xpath4Directions) %&gt;% 
+  html_text2()
+```
+
+---
+# The scraped recipe
+&lt;div style="font-size:12pt"&gt;
+.pull-left[
+
+```r
+show(ingredients)
+```
+
+```
+## [[1]]
+##  [1] "½ cup white sugar"                  ""                                  
+##  [3] "2 tablespoons butter"               ""                                  
+##  [5] "2 tablespoons water"                ""                                  
+##  [7] "1 ½ cups semisweet chocolate chips" ""                                  
+##  [9] "2 large eggs, beaten"               ""                                  
+## [11] "½ teaspoon vanilla extract"         ""                                  
+## [13] "⅔ cup all-purpose flour"            ""                                  
+## [15] "½ teaspoon salt"                    ""                                  
+## [17] "¼ teaspoon baking soda"
+```
+]
+.pull-right[
+
+```r
+show(directions)
+```
+
+```
+## [1] "½ cup white sugar\n\n2 tablespoons butter\n\n2 tablespoons water\n\n1 ½ cups semisweet chocolate chips\n\n2 large eggs, beaten\n\n½ teaspoon vanilla extract\n\n⅔ cup all-purpose flour\n\n½ teaspoon salt\n\n¼ teaspoon baking soda"                                                                                          
+## [2] "Directions"                                                                                                                                                                                                                                                                                                                    
+## [3] "Preheat the oven to 325 degrees F (165 degrees C). Grease an 8-inch square pan."                                                                                                                                                                                                                                               
+## [4] "Preheat the oven to 325 degrees F (165 degrees C). Grease an 8-inch square pan."                                                                                                                                                                                                                                               
+## [5] "Combine sugar, butter, and water in a medium saucepan; cook and stir over medium heat until boiling. Remove from heat and stir in chocolate chips until melted and smooth; mix in eggs and vanilla. Combine flour, salt, and baking soda; stir into the chocolate mixture. Spread brownie batter evenly into the prepared pan."
+## [6] "Bake in the preheated oven until top is dry and edges have started to pull away from the sides of the pan, about 20 to 30 minutes. Let cool completely before cutting into squares.\n\ndotdash meredith food studios"
+```
+]
+---
+
+# A function to scrape brownies
+
+&lt;div style="font-size:12pt"&gt;
+
+```r
+scrape_recipes &lt;- function(URL) {
+  aDessert &lt;- read_html(URL)
+  ingredients &lt;- aDessert %&gt;% 
+    html_elements( ".mntl-structured-ingredients__list") %&gt;% 
+    html_text2() %&gt;% stringr::str_split("\\n")
+
+  xpath4Directions &lt;- '//*[(@id = "mntl-sc-block_2-0-1")] | //*[(@id = "mntl-sc-block_2-0-9")] | //*[(@id = "mntl-sc-block_2-0-5")] | //*[(@id = "mntl-sc-block_2-0-2")] | //*[(@id = "recipe__steps-heading_1-0")] | //*[contains(concat( " ", @class, " " ), concat( " ", "mntl-structured-ingredients__list", " " ))]'
+
+  directions &lt;-  aDessert %&gt;% 
+    html_elements( xpath=xpath4Directions) %&gt;% 
+    html_text2()
+  return(list(Ingredientes=ingredients, Recepta=directions))
+}
+```
+
+
+---
+# The scraped recipe (2)
+
+&lt;small&gt;
+
+```r
+library(rvest)
+recipeURL &lt;- "https://www.allrecipes.com/recipe/25080/mmmmm-brownies/"
+brownies &lt;- scrape_recipes (recipeURL)
+```
+&lt;/small&gt;
+
+&lt;div style="font-size:12pt"&gt;
+
+.pull-left[
+
+```r
+show(brownies[["Ingredientes"]])
+```
+
+```
+## [[1]]
+##  [1] "½ cup white sugar"                  ""                                  
+##  [3] "2 tablespoons butter"               ""                                  
+##  [5] "2 tablespoons water"                ""                                  
+##  [7] "1 ½ cups semisweet chocolate chips" ""                                  
+##  [9] "2 large eggs, beaten"               ""                                  
+## [11] "½ teaspoon vanilla extract"         ""                                  
+## [13] "⅔ cup all-purpose flour"            ""                                  
+## [15] "½ teaspoon salt"                    ""                                  
+## [17] "¼ teaspoon baking soda"
+```
+]
+.pull-right[
+
+```r
+show(show(brownies[["Recepta"]]))
+```
+
+```
+## [1] "½ cup white sugar\n\n2 tablespoons butter\n\n2 tablespoons water\n\n1 ½ cups semisweet chocolate chips\n\n2 large eggs, beaten\n\n½ teaspoon vanilla extract\n\n⅔ cup all-purpose flour\n\n½ teaspoon salt\n\n¼ teaspoon baking soda"                                                                                          
+## [2] "Directions"                                                                                                                                                                                                                                                                                                                    
+## [3] "Preheat the oven to 325 degrees F (165 degrees C). Grease an 8-inch square pan."                                                                                                                                                                                                                                               
+## [4] "Preheat the oven to 325 degrees F (165 degrees C). Grease an 8-inch square pan."                                                                                                                                                                                                                                               
+## [5] "Combine sugar, butter, and water in a medium saucepan; cook and stir over medium heat until boiling. Remove from heat and stir in chocolate chips until melted and smooth; mix in eggs and vanilla. Combine flour, salt, and baking soda; stir into the chocolate mixture. Spread brownie batter evenly into the prepared pan."
+## [6] "Bake in the preheated oven until top is dry and edges have started to pull away from the sides of the pan, about 20 to 30 minutes. Let cool completely before cutting into squares.\n\ndotdash meredith food studios"                                                                                                          
+## NULL
+```
+]
+
+---
+
+class: inverse, middle, center
+
+name: flowchange
+
+# Changing the flow
+
+---
+
+# Changing the flow of execution
+
+**Scripts are executed _lineally_**
+
+- R, as most ordinary programming languages, is executed lineally, that is from the first to last line.
+- Sometimes this needs to be changed.
+    + Taking alternative flows according to certain conditions
+    + Repeating some instructions while certain condition holds, or a fixed number of times,...
+    
+- This can be acomplished using *Flow Control Structures*
+
+---
+
+# Loop controlled by a counter: `for`
+
+- Loops are used in programming to repeat a specific block of code made by one or more instructions.
+- Syntax of `for` loops:
+
+
+```r
+    for (val in sequence)
+    {
+    statement
+    }
+```
+
+- `sequence` is a vector and `val` takes on _each of its values_ during the loop. 
+- In each iteration, `statement` is evaluated.
+
+---
+
+# Example of `for` loop
+
+- A `for` loop can be used to preprocess a list of selected files
+- Assume we have the list of four files to be processed, and __*we know they have the same structure*__.
+- To process them all in one step do (not run):
+
+&lt;div style="font-size:15pt"&gt;
+
+```r
+llistaMunicipis &lt;- c("MunicipisBAR.csv", "MunicipisGIR.csv", 
+                     "MunicipisLLE.csv", "MunicipisTAR.csv" )
+for (nomFitxerMunicipis in llistaMunicipis) {
+  municipisProvincia &lt;- read_csv("nomFitxerMunicipis")
+  preprocessa(municipisProvincia)
+  summary(municipisProvincia)
+}
+```
+---
+
+# Exercise
+
+- Create a `for` loop that reads all .csv filenames in your datasets directory (or the directory you decide) and prints the name of the file and the column names in the screen.
+
+---
+
+# Scraping multiple recipes
+
+- Imagine we want to process not one but many desserts' recipes from the web 
+"https://www.allrecipes.com/".
+- THis can be done using a simple for loop:
+
+
+&lt;div style="font-size:11pt"&gt;
+
+```r
+recipe_urls &lt;- c("https://www.allrecipes.com/recipe/25080/mmmmm-brownies/",
+                 "https://www.allrecipes.com/recipe/27188/crepes/",
+                 "https://www.allrecipes.com/recipe/22180/waffles-i/")
+listOfRecipes &lt;- list()
+for (i in 1:length(recipe_urls)) {
+  listOfRecipes[i] &lt;- scrape_recipes(recipe_urls[i])
+}
+```
+
+---
+# Exercise
+
+- Write a simple function to print one recipes obtained using the function `scrape_recipes`
+
+- Use this function to print all the recipes collected in the list "listOfRecipes" 
+---
+
+# Conditional statements: `if - else`.
+
+- Conditional statements allow different blocks to be executed whether a certain condition is TRUE or FALSE.
+
+
+```r
+    if (test_expression) {
+        statement
+      }
+```
+- If the `test_expression` is TRUE, the `statement` gets executed. But if it's FALSE, nothing happens.
+- Here, `test_expression` can be a logical or numeric vector, but only the first element is taken into consideration.
+- In numeric vectors, zero is taken as FALSE, rest as TRUE.
+
+
+---
+
+# Conditional statements: `if - else`.
+
+
+
+```r
+    if (test_expression) {
+        statement_1
+    }else{
+        statement_2
+      }
+```
+
+- If the `test_expression` is TRUE, then `statement_1` gets executed. 
+- If it's FALSE then `statement_2` gets executed. 
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": true
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

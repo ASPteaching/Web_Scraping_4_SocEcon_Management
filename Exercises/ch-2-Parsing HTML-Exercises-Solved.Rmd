@@ -1,10 +1,10 @@
 ---
 title: "Parsing HTML with the `rvest`"
 author: "Alex Sanchez"
-date: "June 2018"
 output: 
   html_document:
     toc: true
+    code_folding: hide
 editor_options: 
   chunk_output_type: console
 ---
@@ -22,7 +22,7 @@ if (!require(rvest)) install.packages("rvest", dep=TRUE)
 require(rvest)
 ```
 
-# Scraping exercises
+**Scraping exercises**
 
 Remember
 
@@ -32,37 +32,24 @@ Remember
 4. Check the consistency of what you have obtained. Clean it whenever needed
 5. Eventually analyze the data
 
-## Exercise 1
+# Exercise 1
 
 Consider the url 'https://statbel.fgov.be/en/themes/indicators/prices/service-price-indices#panel-11'
 
 Extract all the information load on table.
 
-
-```{r}
-require(rvest)
-url<- 'https://statbel.fgov.be/en/themes/indicators/prices/service-price-indices#panel-11'
-# url='http://statbel.fgov.be/en/statistics/figures/economy/indicators/prix_prod_con/'
-
-TAB <- read_html(url) %>% html_nodes('td') %>% html_text()
-NAMES <- read_html(url)%>% html_nodes('th') %>% html_text()
-M <- data.frame(matrix(TAB, ncol=5, nrow=13, byrow=T))
-M  <- rbind(rep(NA,5),M)
-M <- cbind(NAMES[7:20],M)
-names(M) = NAMES[1:6]
-```
-An alernative approch is using `html_table` function
+The process is straightforward using `html_table`.
 
 ```{r}
 require(rvest)
 url<- 'https://statbel.fgov.be/en/themes/indicators/prices/service-price-indices#panel-11'
 page <- read_html (url) 
-myTables <-html_table(page, fill = TRUE) 
+myTables <-html_table(page) 
 M2<- myTables[[1]]
 ```
-The process seems easier to do using `html_table`
 
-## Exercise 2
+
+# Exercise 2
 
 Consider the url 'http://www2.sas.com/proceedings/sugi30/toc.html'
 
@@ -89,7 +76,7 @@ urls[1:6]
 ```
 
 
-## Exercise 3
+# Exercise 3
 
 Consider the url 'http://www.gibbon.se/Retailer/Map.aspx?SectionId=832'
 
@@ -106,7 +93,7 @@ countries
 
 Notice that once we have the right node we access the text in children nodes using `html_children`
 
-## Exercise 4
+# Exercise 4
 
 Consider the url 'http://r-exercises.com/start-here-to-learn-r/'
 
@@ -126,7 +113,7 @@ topics <- read_html(url) %>%
 topics[1:20]
 ```
 
-## Exercise 5
+# Exercise 5
 
 Consider the url 'http://www.immobiliare.it/Roma/agenzie_immobiliari_provincia-Roma.html'
 
@@ -141,7 +128,7 @@ names <- read_html(url) %>%
 ```
 
 
-## Exercise 6
+# Exercise 6
 
 Consider the url='http://www.dictionary.com/browse/' and the words 'handy','whisper','lovely','scrape'.
 
@@ -167,68 +154,68 @@ s=data.frame(cbind(word,defs))
 s[1:2,] 
 ```
 
-## Exercise 7
+<!-- # Exercise 7 -->
 
-- Write a script to find out which actor appears in  higher number of Star War movies.
+<!-- - Write a script to find out which actor appears in  higher number of Star War movies. -->
 
-- Hint: The idea is similar to the previous exercise but with a litlle more work you can 
+<!-- - Hint: The idea is similar to the previous exercise but with a litlle more work you can  -->
 
-1. Start in a page that gives you access to the list of Star Wars Films (try googling "Star Wars IMDB")
-2. From here write a function to extract the authors list from an IMDB whose URL is providd
-3. Apply the function to the URLs list and
-4. Tabulate or plot
+<!-- 1. Start in a page that gives you access to the list of Star Wars Films (try googling "Star Wars IMDB") -->
+<!-- 2. From here write a function to extract the authors list from an IMDB whose URL is providd -->
+<!-- 3. Apply the function to the URLs list and -->
+<!-- 4. Tabulate or plot -->
 
-```{r}
-library(rvest)
-# Start googling "list of all star war films IMDB"
-# Select one page, for example: https://www.imdb.com/list/ls069505240/
+<!-- ```{r eval=FALSE} -->
+<!-- library(rvest) -->
+<!-- # Start googling "list of all star war films IMDB" -->
+<!-- # Select one page, for example: https://www.imdb.com/list/ls069505240/ -->
 
-star_wars_movies <- read_html("https://www.imdb.com/list/ls069505240/")
+<!-- star_wars_movies <- read_html("https://www.imdb.com/list/ls069505240/") -->
 
-# Inspect the page to find appropriate selectors for each movie's urls
-# Notice that we don't have to recover the node's text but the url, so we use "html_attr"
-# Selection with selector gadget can yield distinct results because these are but "guesses"
+<!-- # Inspect the page to find appropriate selectors for each movie's urls -->
+<!-- # Notice that we don't have to recover the node's text but the url, so we use "html_attr" -->
+<!-- # Selection with selector gadget can yield distinct results because these are but "guesses" -->
 
-# selectorDescription <- ".mode-detail:nth-child(2) a"
-selectorDescription <- "h3 a"
+<!-- # selectorDescription <- ".mode-detail:nth-child(2) a" -->
+<!-- selectorDescription <- "h3 a" -->
 
-url_film <- star_wars_movies %>% 
-  html_nodes(selectorDescription) %>% 
-  html_attr('href')
+<!-- url_film <- star_wars_movies %>%  -->
+<!--   html_nodes(selectorDescription) %>%  -->
+<!--   html_attr('href') -->
 
-# Inspect the object. 
-# First ten items correspond to titles but they miss the first part of the url
+<!-- # Inspect the object.  -->
+<!-- # First ten items correspond to titles but they miss the first part of the url -->
 
-urls <- character()
-for(i in 1:10){
-  urls[i] <- paste0("https://www.imdb.com",url_film[i])
-}
+<!-- urls <- character() -->
+<!-- for(i in 1:10){ -->
+<!--   urls[i] <- paste0("https://www.imdb.com",url_film[i]) -->
+<!-- } -->
 
-# Now we have the lists of pages that have to be scrapped 
-# we iterate with the code used in the example
+<!-- # Now we have the lists of pages that have to be scrapped  -->
+<!-- # we iterate with the code used in the example -->
 
-# lego_movie <- read_html("http://www.imdb.com/title/tt1490017/")
-# tables <- html_table(lego_movie, fill = TRUE) #Parses tables into data frames
-# castTable<- tables[[1]]
-# castNames3 <- as.character(castTable[-1,2])
+<!-- # lego_movie <- read_html("http://www.imdb.com/title/tt1490017/") -->
+<!-- # tables <- html_table(lego_movie, fill = TRUE) #Parses tables into data frames -->
+<!-- # castTable<- tables[[1]] -->
+<!-- # castNames3 <- as.character(castTable[-1,2]) -->
 
-cast = list()
-n = 1
-for(i in urls){
-  film <- read_html(i)
-  tables <- html_table(film, fill = TRUE)
-  castTable<- tables[[1]]
-  castNames <- as.character(castTable[-1,2])
-  cast[[n]] <- castNames
-  n = n + 1
-}
+<!-- cast = list() -->
+<!-- n = 1 -->
+<!-- for(i in urls){ -->
+<!--   film <- read_html(i) -->
+<!--   tables <- html_table(film, fill = TRUE) -->
+<!--   castTable<- tables[[1]] -->
+<!--   castNames <- as.character(castTable[-1,2]) -->
+<!--   cast[[n]] <- castNames -->
+<!--   n = n + 1 -->
+<!-- } -->
 
-# To complete the process joint the lists with 'unlist', tabulate and sort
+<!-- # To complete the process joint the lists with 'unlist', tabulate and sort -->
 
-sortedCast <- sort(table(unlist(cast)), dec=TRUE)
-sortedCast[1:5]
-# And the winner is: "Actors[1]"
+<!-- sortedCast <- sort(table(unlist(cast)), dec=TRUE) -->
+<!-- sortedCast[1:5] -->
+<!-- # And the winner is: "Actors[1]" -->
 
-```
+<!-- ``` -->
 
 

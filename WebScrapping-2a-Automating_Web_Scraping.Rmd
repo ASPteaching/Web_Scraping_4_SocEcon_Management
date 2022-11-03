@@ -1,0 +1,400 @@
+---
+title: "Automating web scraping with R"
+author: Alex Sanchez and Francesc Carmona
+institute: Genetics Microbiology and Statistics Department <br> Universitat de Barcelona
+date: October 2022 # "`r Sys.Date()`"
+output:
+  xaringan::moon_reader:
+    css: [default, metropolis, metropolis-fonts, "css4WScourse.css" ]
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: true
+editor_options: 
+  chunk_output_type: console
+---
+
+<style type="text/css">
+.remark-slide-content {
+    font-size: 28px;
+    padding: 1em 2em 1em 2em;
+}
+.left-code {
+  color: #777;
+  width: 38%;
+  height: 92%;
+  float: left;
+}
+.right-plot {
+  width: 60%;
+  float: right;
+  padding-left: 1%;
+}
+<style>
+span.small {
+  font-size: smaller;
+}
+</style>
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE, echo=TRUE,
+        message=FALSE,warning=FALSE,
+        fig.dim=c(4.8, 4.5), fig.retina=2, out.width="100%")
+
+knitr::opts_chunk$set(echo = TRUE)
+
+knitr::knit_hooks$set(mysize = function(before, options, envir) {
+  if (before) 
+    return(options$size)
+})
+```
+
+# Outline
+
+.columnwide[
+  ### 1) [Introduction](#Introduction)
+  ### 2) [User defined functions](#functions)
+  ### 3) [Changing the execution flow](#loops)
+  ### 4) [References and Resources](#Resources)
+]
+
+---
+
+class: inverse, middle, center
+
+name: Introduction
+
+# Introduction
+
+---
+
+# Introduction
+
+- We have introduced R  as a *a language (a tool), to manage and analyze data*.
+- It is also a *programming language*
+  + It is simple and versatile
+  + The user can create new functions that adapt to their
+needs
+  + It is widely used (2nd most widely used in Data Science)
+  + Users provide the community with a high variety of solutions ("packages")
+  + As a programming language it is not, however, very efficient
+    
+---
+
+# Example 1: Why we need programming
+
+- Assume we have the diabetes dataset and want to make a summary of every variable it contains.
+- Some variables are "naturally" categorical   but the system cannot recognnize them, so we need to transform them.
+
+<div style="font-size:14pt">
+```{r, eval=FALSE}
+library(readr)
+library(dplyr)
+library(janitor)
+MunicipisBARC <- read_csv("datasets/MunicipisBARC.csv")
+MunicipisBreu <- MunicipisBARC %>% select (1,2,9,10,27,28) %>%  
+  janitor::clean_names()
+summary(MunicipisBreu)
+```
+ 
+
+ 
+---
+
+# Example 1: Why we need programming
+
+<div style="font-size:12pt">
+```{r echo=FALSE}
+library(readr)
+MunicipisBARC <- read_csv("datasets/MunicipisBARC.csv")
+```
+
+
+```{r}
+library(dplyr)
+library(janitor)
+MunicipisBreu <- MunicipisBARC %>% select (1,2,9,10,27,28) %>%  
+  janitor::clean_names()
+summary(MunicipisBreu)
+```
+---
+# Example 1: Why we need programming
+
+- A simple solution: Convert text variables into factors.
+
+<div style="font-size:12pt">
+
+```{r}
+library(forcats)
+MunicipisBreu$codi_de_comarca <- as_factor(MunicipisBreu$codi_de_comarca)
+MunicipisBreu$nom_de_la_comarca <- as_factor(MunicipisBreu$nom_de_la_comarca)
+
+summary(MunicipisBreu)
+```
+
+---
+
+- But how shoulde we proceed if there were dozens or hundreds of variables that need to be changed?
+- What if, besides, we were required to do ths repeatedly, on distinct files every day?
+
+- One solution may consists of:
+  - providing some way to encapsulate all steps needed to do the transformation 
+  - in such a way that they can be easily applied to a file everytime they are required.
+  
+- This is an example of a "program" that we would use to automate the preliminary steps we may do with any file of a certain type.
+
+
+---
+
+class: inverse, middle, center
+
+name: functions
+
+# User defined functions
+
+---
+
+# Functions are named expressions
+
+- A function is a set of statements organized together to perform a specific task. 
+- R has a large number of in-built functions.
+- Users can create their own functions, for those situations where they wish to apply the same set of instructions more than once.
+
+<div style="font-size:18pt">
+```{r eval=FALSE}
+function_name <- function(arg_1, arg_2, ...) {
+   sentence 1
+   ...
+   sentence n
+   return(result)
+}
+```
+
+Go [here](https://www.tutorialspoint.com/r/r_functions.htm) for more information on functions.
+
+---
+# A preprocessing function
+
+We can encapsulate preprocessing in a function
+<div style="font-size:16pt">
+```{r}
+preprocessa <- function(unMunicipi){
+  unMunicipiBreu <- unMunicipi %>% select (1,2,9,10,27,28) %>%  
+  janitor::clean_names()
+  unMunicipiBreu$codi_de_comarca <- as_factor(unMunicipiBreu$codi_de_comarca)
+  unMunicipiBreu$nom_de_la_comarca <- as_factor(unMunicipiBreu$nom_de_la_comarca)
+  return(unMunicipiBreu)
+}
+```
+
+And use it whenever is required
+```{r eval=FALSE}
+BCNBreu <- preprocessa(MunicipisBARC)
+GiroBreu <- preprocessa(MunicipisGIRO)
+LleidaBreu <- preprocessa(MunicipisLleida)
+```
+
+---
+
+# Scraping a recipes site
+
+- Imagine we are scraping a recipes site
+- The code below extracts (without cleaning it) a recipe for brownies.
+
+<div style="font-size:12pt">
+```{r}
+library(rvest)
+brownies <- read_html("https://www.allrecipes.com/recipe/25080/mmmmm-brownies/")
+
+ingredients <- brownies %>% 
+  html_elements( ".mntl-structured-ingredients__list") %>% 
+  html_text2() %>% stringr::str_split("\\n")
+
+xpath4Directions <- '//*[(@id = "mntl-sc-block_2-0-1")] | //*[(@id = "mntl-sc-block_2-0-9")] | //*[(@id = "mntl-sc-block_2-0-5")] | //*[(@id = "mntl-sc-block_2-0-2")] | //*[(@id = "recipe__steps-heading_1-0")] | //*[contains(concat( " ", @class, " " ), concat( " ", "mntl-structured-ingredients__list", " " ))]'
+
+directions <-  brownies %>% 
+  html_elements( xpath=xpath4Directions) %>% 
+  html_text2()
+
+```
+
+---
+# The scraped recipe
+<div style="font-size:12pt">
+.pull-left[
+```{r}
+show(ingredients)
+```
+]
+.pull-right[
+```{r}
+show(directions)
+```
+]
+---
+
+# A function to scrape brownies
+
+<div style="font-size:12pt">
+```{r}
+scrape_recipes <- function(URL) {
+  aDessert <- read_html(URL)
+  ingredients <- aDessert %>% 
+    html_elements( ".mntl-structured-ingredients__list") %>% 
+    html_text2() %>% stringr::str_split("\\n")
+
+  xpath4Directions <- '//*[(@id = "mntl-sc-block_2-0-1")] | //*[(@id = "mntl-sc-block_2-0-9")] | //*[(@id = "mntl-sc-block_2-0-5")] | //*[(@id = "mntl-sc-block_2-0-2")] | //*[(@id = "recipe__steps-heading_1-0")] | //*[contains(concat( " ", @class, " " ), concat( " ", "mntl-structured-ingredients__list", " " ))]'
+
+  directions <-  aDessert %>% 
+    html_elements( xpath=xpath4Directions) %>% 
+    html_text2()
+  return(list(Ingredientes=ingredients, Recepta=directions))
+}
+```
+
+
+---
+# The scraped recipe (2)
+
+<small>
+```{r}
+library(rvest)
+recipeURL <- "https://www.allrecipes.com/recipe/25080/mmmmm-brownies/"
+brownies <- scrape_recipes (recipeURL)
+```
+</small>
+
+<div style="font-size:12pt">
+
+.pull-left[
+```{r}
+show(brownies[["Ingredientes"]])
+```
+]
+.pull-right[
+```{r}
+show(show(brownies[["Recepta"]]))
+```
+]
+
+---
+
+class: inverse, middle, center
+
+name: flowchange
+
+# Changing the flow
+
+---
+
+# Changing the flow of execution
+
+**Scripts are executed _lineally_**
+
+- R, as most ordinary programming languages, is executed lineally, that is from the first to last line.
+- Sometimes this needs to be changed.
+    + Taking alternative flows according to certain conditions
+    + Repeating some instructions while certain condition holds, or a fixed number of times,...
+    
+- This can be acomplished using *Flow Control Structures*
+
+---
+
+# Loop controlled by a counter: `for`
+
+- Loops are used in programming to repeat a specific block of code made by one or more instructions.
+- Syntax of `for` loops:
+
+```{r eval=FALSE}
+    for (val in sequence)
+    {
+    statement
+    }
+```
+
+- `sequence` is a vector and `val` takes on _each of its values_ during the loop. 
+- In each iteration, `statement` is evaluated.
+
+---
+
+# Example of `for` loop
+
+- A `for` loop can be used to preprocess a list of selected files
+- Assume we have the list of four files to be processed, and __*we know they have the same structure*__.
+- To process them all in one step do (not run):
+
+<div style="font-size:15pt">
+```{r eval=FALSE}
+llistaMunicipis <- c("MunicipisBAR.csv", "MunicipisGIR.csv", 
+                     "MunicipisLLE.csv", "MunicipisTAR.csv" )
+for (nomFitxerMunicipis in llistaMunicipis) {
+  municipisProvincia <- read_csv("nomFitxerMunicipis")
+  preprocessa(municipisProvincia)
+  summary(municipisProvincia)
+}
+```
+---
+
+# Exercise
+
+- Create a `for` loop that reads all .csv filenames in your datasets directory (or the directory you decide) and prints the name of the file and the column names in the screen.
+
+---
+
+# Scraping multiple recipes
+
+- Imagine we want to process not one but many desserts' recipes from the web 
+"https://www.allrecipes.com/".
+- THis can be done using a simple for loop:
+
+
+<div style="font-size:11pt">
+```{r eval=FALSE}
+recipe_urls <- c("https://www.allrecipes.com/recipe/25080/mmmmm-brownies/",
+                 "https://www.allrecipes.com/recipe/27188/crepes/",
+                 "https://www.allrecipes.com/recipe/22180/waffles-i/")
+listOfRecipes <- list()
+for (i in 1:length(recipe_urls)) {
+  listOfRecipes[i] <- scrape_recipes(recipe_urls[i])
+}
+```
+
+---
+# Exercise
+
+- Write a simple function to print one recipes obtained using the function `scrape_recipes`
+
+- Use this function to print all the recipes collected in the list "listOfRecipes" 
+---
+
+# Conditional statements: `if - else`.
+
+- Conditional statements allow different blocks to be executed whether a certain condition is TRUE or FALSE.
+
+```{r eval=FALSE}
+    if (test_expression) {
+        statement
+      }
+```
+- If the `test_expression` is TRUE, the `statement` gets executed. But if it's FALSE, nothing happens.
+- Here, `test_expression` can be a logical or numeric vector, but only the first element is taken into consideration.
+- In numeric vectors, zero is taken as FALSE, rest as TRUE.
+
+
+---
+
+# Conditional statements: `if - else`.
+
+
+```{r eval=FALSE}
+    if (test_expression) {
+        statement_1
+    }else{
+        statement_2
+      }
+```
+
+- If the `test_expression` is TRUE, then `statement_1` gets executed. 
+- If it's FALSE then `statement_2` gets executed. 
+

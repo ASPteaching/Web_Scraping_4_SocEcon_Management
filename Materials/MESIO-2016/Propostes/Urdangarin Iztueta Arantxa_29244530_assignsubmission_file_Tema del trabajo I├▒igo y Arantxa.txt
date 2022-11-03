@@ -1,0 +1,8 @@
+Tema del trabajo
+Iñigo Portillo y Arantxa Urdangarin
+
+
+Vamos a analizar los tweets o noticias relacionados con la incineradora que se va a construir en Zubieta (Gipuzkoa).
+Para ello utilizaremos las palabras claves "Incineradora Guipúzcoa" y "Erraustegia Gipuzkoa". 
+
+El objetivo sera analizar el debate que ha habido sobre este tema extrayendo dichas noticias y fecha de publicación.

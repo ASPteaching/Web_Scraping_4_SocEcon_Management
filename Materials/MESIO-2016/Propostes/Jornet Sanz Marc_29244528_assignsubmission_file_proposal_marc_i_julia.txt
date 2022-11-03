@@ -1,0 +1,16 @@
+Authors of the project: Marc Jornet Sanz and Julia Calatayud Gregori.
+
+
+Abstract of the project:
+
+Sport is a catalan daily sports newspaper founded in 1979. It writes mainly about Football Club Barcelona and Spanish football.
+
+This newspaper has an electronic version in http://www.sport.es/es/, with html source code. Although the news are presented in an organized way, we think as
+lifelong Barça supporters and usual readers of Sport that it is difficult to know quickly what news are about what you are interested on.
+
+Because of this, our goal is to create an app that provides the URL of the news that are interesting for you. In a cell, you will write any 
+character string related to your interest. The app will look for the news that contain in their heading (title or subtitles) this character string. 
+
+The programming procedure will be based on web scrapping in R. In addition, we will study Shiny (which seems very interesting) in order to present the results in such a 
+way that a user will be able to interact with the program in a web structure without knowing anything about R.
+
