@@ -84,66 +84,61 @@ needs
 
 # Example 1: Why we need programming
 
-- Assume we have the diabetes dataset and want to make a summary of every variable it contains.
-- Some variables are "naturally" categorical   but the system cannot recognnize them, so we need to transform them.
+- It is very common that one has to do repetitive tasks on a the same type of datasets, e.g. 
+  - Data produced periodically o,
+  - Data from multiple sources but have the same structure.
 
-<div style="font-size:14pt">
-```{r, eval=FALSE}
-library(readr)
-library(dplyr)
-library(janitor)
-MunicipisBARC <- read_csv("datasets/MunicipisBARC.csv")
-MunicipisBreu <- MunicipisBARC %>% select (1,2,9,10,27,28) %>%  
-  janitor::clean_names()
-summary(MunicipisBreu)
-```
- 
+- For example, given a file with information about the cities of a given province, we are required to produce a simpler version:
+  - With less columns
+  - Without spaces or accents in the column names
+  - With the appropriate data types for each column
 
- 
 ---
 
-# Example 1: Why we need programming
+# Example 1: Transformations 
 
-<div style="font-size:12pt">
-```{r echo=FALSE}
-library(readr)
-MunicipisBARC <- read_csv("datasets/MunicipisBARC.csv")
-```
-
+<div style="font-size:16pt">
 
 ```{r}
-library(dplyr)
-library(janitor)
-MunicipisBreu <- MunicipisBARC %>% select (1,2,9,10,27,28) %>%  
-  janitor::clean_names()
-summary(MunicipisBreu)
+library(dplyr); library(janitor)
+MunicipisBARC <- read.csv("datasets/MunicipisBARC.csv", quote='"')
+MunicipisBreu <- MunicipisBARC %>% select (2,9,10,27,28) %>%  
+  janitor::clean_names() %>% 
+  mutate (across(c("codi_de_comarca", "nom_de_la_comarca"), as.factor))
 ```
+
 ---
-# Example 1: Why we need programming
 
-- A simple solution: Convert text variables into factors.
+# Example 1: Before and after transform
 
-<div style="font-size:12pt">
+ <div style="font-size:12pt">
+
+.pull-left[
+```{r}  
+summary(MunicipisBARC[,c(2,9,10,27,28)])
+```
+]
+
+.pull-right[
 
 ```{r}
-library(forcats)
-MunicipisBreu$codi_de_comarca <- as_factor(MunicipisBreu$codi_de_comarca)
-MunicipisBreu$nom_de_la_comarca <- as_factor(MunicipisBreu$nom_de_la_comarca)
-
 summary(MunicipisBreu)
 ```
 
+`codi_de_comarca` and `nom_de_la_comarca` are now factors.
+]
+
 ---
 
-- But how shoulde we proceed if there were dozens or hundreds of variables that need to be changed?
-- What if, besides, we were required to do ths repeatedly, on distinct files every day?
+# Repeating the transformation
+
+- How should we proceed if these changes had to be applied repeteadly to many distinct files (with same structure)
 
 - One solution may consists of:
   - providing some way to encapsulate all steps needed to do the transformation 
   - in such a way that they can be easily applied to a file everytime they are required.
   
-- This is an example of a "program" that we would use to automate the preliminary steps we may do with any file of a certain type.
-
+- This is an example of a "function" (a type of sub-program in R) that we would use to automate this preprocessing.
 
 ---
 
@@ -176,23 +171,25 @@ Go [here](https://www.tutorialspoint.com/r/r_functions.htm) for more information
 ---
 # A preprocessing function
 
-We can encapsulate preprocessing in a function
-<div style="font-size:16pt">
+We can encapsulate preprocessing in a function:
+<div style="font-size:14pt">
 ```{r}
-preprocessa <- function(unMunicipi){
-  unMunicipiBreu <- unMunicipi %>% select (1,2,9,10,27,28) %>%  
-  janitor::clean_names()
-  unMunicipiBreu$codi_de_comarca <- as_factor(unMunicipiBreu$codi_de_comarca)
-  unMunicipiBreu$nom_de_la_comarca <- as_factor(unMunicipiBreu$nom_de_la_comarca)
+preprocessa <- function(nomArxiuMunicipi){
+  require(dplyr); require(janitor)
+  unMunicipi <- read.csv(nomArxiuMunicipi)
+  unMunicipiBreu <- unMunicipi %>% select (2,9,10,27,28) %>%  
+  janitor::clean_names() %>% 
+  mutate (across(c("codi_de_comarca", "nom_de_la_comarca"), as.factor))
   return(unMunicipiBreu)
 }
 ```
 
-And use it whenever is required
+And use it whenever is required. Assuming we had the files "MunicipisBARC.csv", "MunicipisGIRO.csv" and "MunicipisLLEI.csv" available we would do: 
+
 ```{r eval=FALSE}
-BCNBreu <- preprocessa(MunicipisBARC)
-GiroBreu <- preprocessa(MunicipisGIRO)
-LleidaBreu <- preprocessa(MunicipisLleida)
+BCNBreu <- preprocessa("MunicipisBARC.csv")
+GiroBreu <- preprocessa("MunicipisGIRO.csv")
+LleidaBreu <- preprocessa("MunicipisLLEI.csv")
 ```
 
 ---
@@ -206,22 +203,24 @@ LleidaBreu <- preprocessa(MunicipisLleida)
 ```{r}
 library(rvest)
 brownies <- read_html("https://www.allrecipes.com/recipe/25080/mmmmm-brownies/")
-
 ingredients <- brownies %>% 
   html_elements( "#mntl-structured-ingredients_1-0") %>% 
-  html_text2() %>% stringr::str_split("\\n")
-show(ingredients)
+  html_text2() %>% stringr::str_split("\\n\\n")
 
 xpath4Directions <- '//*[(@id = "recipe__steps_1-0")]'
 
 directions <-  brownies %>% 
   html_elements( xpath=xpath4Directions) %>% 
   html_text2() %>% stringr::str_split("\\n\\n") 
-show(directions)
+
 ```
+
+</div>
+- Selectors were obtained inspecting the page source code with SelectorGadget or Google Developper tools.
 
 ---
 # The scraped recipe
+
 <div style="font-size:12pt">
 .pull-left[
 ```{r}
@@ -235,8 +234,12 @@ show(directions)
 ]
 ---
 
-# A function to scrape brownies
+# A function to scrape recipes
 
+- Proceed similarly as before:
+  - abstracting the process and 
+  - turning what is different every time (URL) into arguments
+  
 <div style="font-size:12pt">
 ```{r}
 scrape_recipes <- function(URL) {
@@ -249,8 +252,8 @@ scrape_recipes <- function(URL) {
 
   directions <-  aDessert %>% 
     html_elements( xpath=xpath4Directions) %>% 
-    html_text2()
-  return(list(Ingredientes=ingredients, Recepta=directions))
+    html_text2()%>% stringr::str_split("\\n\\n")
+  return(list(Ingredientes=ingredients, Receta=directions))
 }
 ```
 
@@ -265,9 +268,7 @@ recipeURL <- "https://www.allrecipes.com/recipe/25080/mmmmm-brownies/"
 brownies <- scrape_recipes (recipeURL)
 ```
 </small>
-
 <div style="font-size:12pt">
-
 .pull-left[
 ```{r}
 show(brownies[["Ingredientes"]])
@@ -275,7 +276,7 @@ show(brownies[["Ingredientes"]])
 ]
 .pull-right[
 ```{r}
-show(show(brownies[["Recepta"]]))
+show(show(brownies[["Receta"]]))
 ```
 ]
 
@@ -291,7 +292,6 @@ name: flowchange
 
 # Changing the flow of execution
 
-**Scripts are executed _lineally_**
 
 - R, as most ordinary programming languages, is executed lineally, that is from the first to last line.
 - Sometimes this needs to be changed.
@@ -330,16 +330,22 @@ name: flowchange
 llistaMunicipis <- c("MunicipisBAR.csv", "MunicipisGIR.csv", 
                      "MunicipisLLE.csv", "MunicipisTAR.csv" )
 for (nomFitxerMunicipis in llistaMunicipis) {
-  municipisProvincia <- read_csv("nomFitxerMunicipis")
-  preprocessa(municipisProvincia)
+  municipisProvincia <- preprocessa("nomFitxerMunicipis")
   summary(municipisProvincia)
 }
 ```
+An alternative way to run the loop:
+```{r eval =FALSE}
+for (i in 1:length(llistaMunicipis) {
+  municipisProvincia <- preprocessa(llistaMunicipis[i])
+
+```
+
 ---
 
 # Exercise
 
-- Create a `for` loop that reads all .csv filenames in your datasets directory (or the directory you decide) and prints the name of the file and the column names in the screen.
+- Create a `for` loop that reads all filenames in your datasets directory (or the directory you decide) and prints the name of the file and the column names in the screen.
 
 ---
 
@@ -347,7 +353,7 @@ for (nomFitxerMunicipis in llistaMunicipis) {
 
 - Imagine we want to process not one but many desserts' recipes from the web 
 "https://www.allrecipes.com/".
-- THis can be done using a simple for loop:
+- This can be done using a simple for loop:
 
 
 <div style="font-size:11pt">
@@ -360,6 +366,10 @@ for (i in 1:length(recipe_urls)) {
   listOfRecipes[i] <- scrape_recipes(recipe_urls[i])
 }
 ```
+<div>
+
+<div style="font-size:18pt">
+- Notice that the resulting scraped recipes are now stored in a _list_ that will be eventually processed by the user.
 
 ---
 # Exercise
@@ -367,35 +377,4 @@ for (i in 1:length(recipe_urls)) {
 - Write a simple function to print one recipes obtained using the function `scrape_recipes`
 
 - Use this function to print all the recipes collected in the list "listOfRecipes" 
----
-
-# Conditional statements: `if - else`.
-
-- Conditional statements allow different blocks to be executed whether a certain condition is TRUE or FALSE.
-
-```{r eval=FALSE}
-    if (test_expression) {
-        statement
-      }
-```
-- If the `test_expression` is TRUE, the `statement` gets executed. But if it's FALSE, nothing happens.
-- Here, `test_expression` can be a logical or numeric vector, but only the first element is taken into consideration.
-- In numeric vectors, zero is taken as FALSE, rest as TRUE.
-
-
----
-
-# Conditional statements: `if - else`.
-
-
-```{r eval=FALSE}
-    if (test_expression) {
-        statement_1
-    }else{
-        statement_2
-      }
-```
-
-- If the `test_expression` is TRUE, then `statement_1` gets executed. 
-- If it's FALSE then `statement_2` gets executed. 
-
+-

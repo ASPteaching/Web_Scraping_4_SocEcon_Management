@@ -88,94 +88,51 @@ needs
 
 # Example 1: Why we need programming
 
-- Assume we have the diabetes dataset and want to make a summary of every variable it contains.
-- Some variables are "naturally" categorical   but the system cannot recognnize them, so we need to transform them.
+- It is very common that one has to do repetitive tasks on a the same type of datasets, e.g. 
+  - Data produced periodically o,
+  - Data from multiple sources but have the same structure.
 
-&lt;div style="font-size:14pt"&gt;
+- For example, given a file with information about the cities of a given province, we are required to produce a simpler version:
+  - With less columns
+  - Without spaces or accents in the column names
+  - With the appropriate data types for each column
 
-```r
-library(readr)
-library(dplyr)
-library(janitor)
-MunicipisBARC &lt;- read_csv("datasets/MunicipisBARC.csv")
-MunicipisBreu &lt;- MunicipisBARC %&gt;% select (1,2,9,10,27,28) %&gt;%  
-  janitor::clean_names()
-summary(MunicipisBreu)
-```
- 
-
- 
 ---
 
-# Example 1: Why we need programming
+# Example 1: Transformations 
 
-&lt;div style="font-size:12pt"&gt;
-
-```
-## Rows: 311 Columns: 30
-## ── Column specification ────────────────────────────────────────────────────────
-## Delimiter: ","
-## chr  (23): _id, Codi INE, Nom del municipi, Nom curt del municipi, Article d...
-## dbl   (6): Codi de comarca, Codi de la província, Fax, Nombre d'habitants, E...
-## dttm  (1): _lastChange
-## 
-## ℹ Use `spec()` to retrieve the full column specification for this data.
-## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
-```
-
+&lt;div style="font-size:16pt"&gt;
 
 
 ```r
-library(dplyr)
+library(dplyr); library(janitor)
+MunicipisBARC &lt;- read.csv("datasets/MunicipisBARC.csv", quote='"')
+MunicipisBreu &lt;- MunicipisBARC %&gt;% select (2,9,10,27,28) %&gt;%  
+  janitor::clean_names() %&gt;% 
+  mutate (across(c("codi_de_comarca", "nom_de_la_comarca"), as.factor))
 ```
 
-```
-## 
-## Attaching package: 'dplyr'
-```
+---
 
-```
-## The following objects are masked from 'package:stats':
-## 
-##     filter, lag
-```
+# Example 1: Before and after transform
 
-```
-## The following objects are masked from 'package:base':
-## 
-##     intersect, setdiff, setequal, union
-```
+ &lt;div style="font-size:12pt"&gt;
+
+.pull-left[
 
 ```r
-library(janitor)
+summary(MunicipisBARC[,c(2,9,10,27,28)])
 ```
 
 ```
-## 
-## Attaching package: 'janitor'
-```
-
-```
-## The following objects are masked from 'package:stats':
-## 
-##     chisq.test, fisher.test
-```
-
-```r
-MunicipisBreu &lt;- MunicipisBARC %&gt;% select (1,2,9,10,27,28) %&gt;%  
-  janitor::clean_names()
-summary(MunicipisBreu)
-```
-
-```
-##       id              codi_ine         codi_de_comarca nom_de_la_comarca 
-##  Length:311         Length:311         Min.   : 3.00   Length:311        
-##  Class :character   Class :character   1st Qu.: 7.00   Class :character  
-##  Mode  :character   Mode  :character   Median :17.00   Mode  :character  
-##                                        Mean   :19.73                     
-##                                        3rd Qu.:24.00                     
-##                                        Max.   :42.00                     
-##  nombre_dhabitants      extensio     
+##     Codi.INE    Codi.de.comarca Nom.de.la.comarca 
+##  Min.   :8001   Min.   : 3.00   Length:311        
+##  1st Qu.:8078   1st Qu.: 7.00   Class :character  
+##  Median :8156   Median :17.00   Mode  :character  
+##  Mean   :8166   Mean   :19.73                     
+##  3rd Qu.:8236   3rd Qu.:24.00                     
+##  Max.   :8905   Max.   :42.00                     
+##  Nombre.d.habitants     Extensió     
 ##  Min.   :     27.0   Min.   :  0.40  
 ##  1st Qu.:    734.5   1st Qu.: 11.01  
 ##  Median :   3219.0   Median : 21.17  
@@ -183,32 +140,25 @@ summary(MunicipisBreu)
 ##  3rd Qu.:  11010.5   3rd Qu.: 34.12  
 ##  Max.   :1636732.0   Max.   :102.90
 ```
----
-# Example 1: Why we need programming
+]
 
-- A simple solution: Convert text variables into factors.
-
-&lt;div style="font-size:12pt"&gt;
+.pull-right[
 
 
 ```r
-library(forcats)
-MunicipisBreu$codi_de_comarca &lt;- as_factor(MunicipisBreu$codi_de_comarca)
-MunicipisBreu$nom_de_la_comarca &lt;- as_factor(MunicipisBreu$nom_de_la_comarca)
-
 summary(MunicipisBreu)
 ```
 
 ```
-##       id              codi_ine         codi_de_comarca       nom_de_la_comarca
-##  Length:311         Length:311         24     : 47     Osona          : 47    
-##  Class :character   Class :character   41     : 39     Vallès Oriental: 39    
-##  Mode  :character   Mode  :character   6      : 33     Anoia          : 33    
-##                                        7      : 30     Baix Llobregat : 30    
-##                                        11     : 30     Bages          : 30    
-##                                        14     : 30     Maresme        : 30    
-##                                        (Other):102     (Other)        :102    
-##  nombre_dhabitants      extensio     
+##     codi_ine    codi_de_comarca       nom_de_la_comarca
+##  Min.   :8001   24     : 47     Osona          : 47    
+##  1st Qu.:8078   41     : 39     Vallès Oriental: 39    
+##  Median :8156   6      : 33     Anoia          : 33    
+##  Mean   :8166   7      : 30     Bages          : 30    
+##  3rd Qu.:8236   11     : 30     Baix Llobregat : 30    
+##  Max.   :8905   14     : 30     Berguedà       : 30    
+##                 (Other):102     (Other)        :102    
+##  nombre_d_habitants     extensio     
 ##  Min.   :     27.0   Min.   :  0.40  
 ##  1st Qu.:    734.5   1st Qu.: 11.01  
 ##  Median :   3219.0   Median : 21.17  
@@ -218,17 +168,20 @@ summary(MunicipisBreu)
 ## 
 ```
 
+`codi_de_comarca` and `nom_de_la_comarca` are now factors.
+]
+
 ---
 
-- But how shoulde we proceed if there were dozens or hundreds of variables that need to be changed?
-- What if, besides, we were required to do ths repeatedly, on distinct files every day?
+# Repeating the transformation
+
+- How should we proceed if these changes had to be applied repeteadly to many distinct files (with same structure)
 
 - One solution may consists of:
   - providing some way to encapsulate all steps needed to do the transformation 
   - in such a way that they can be easily applied to a file everytime they are required.
   
-- This is an example of a "program" that we would use to automate the preliminary steps we may do with any file of a certain type.
-
+- This is an example of a "function" (a type of sub-program in R) that we would use to automate this preprocessing.
 
 ---
 
@@ -262,25 +215,27 @@ Go [here](https://www.tutorialspoint.com/r/r_functions.htm) for more information
 ---
 # A preprocessing function
 
-We can encapsulate preprocessing in a function
-&lt;div style="font-size:16pt"&gt;
+We can encapsulate preprocessing in a function:
+&lt;div style="font-size:14pt"&gt;
 
 ```r
-preprocessa &lt;- function(unMunicipi){
-  unMunicipiBreu &lt;- unMunicipi %&gt;% select (1,2,9,10,27,28) %&gt;%  
-  janitor::clean_names()
-  unMunicipiBreu$codi_de_comarca &lt;- as_factor(unMunicipiBreu$codi_de_comarca)
-  unMunicipiBreu$nom_de_la_comarca &lt;- as_factor(unMunicipiBreu$nom_de_la_comarca)
+preprocessa &lt;- function(nomArxiuMunicipi){
+  require(dplyr); require(janitor)
+  unMunicipi &lt;- read.csv(nomArxiuMunicipi)
+  unMunicipiBreu &lt;- unMunicipi %&gt;% select (2,9,10,27,28) %&gt;%  
+  janitor::clean_names() %&gt;% 
+  mutate (across(c("codi_de_comarca", "nom_de_la_comarca"), as.factor))
   return(unMunicipiBreu)
 }
 ```
 
-And use it whenever is required
+And use it whenever is required. Assuming we had the files "MunicipisBARC.csv", "MunicipisGIRO.csv" and "MunicipisLLEI.csv" available we would do: 
+
 
 ```r
-BCNBreu &lt;- preprocessa(MunicipisBARC)
-GiroBreu &lt;- preprocessa(MunicipisGIRO)
-LleidaBreu &lt;- preprocessa(MunicipisLleida)
+BCNBreu &lt;- preprocessa("MunicipisBARC.csv")
+GiroBreu &lt;- preprocessa("MunicipisGIRO.csv")
+LleidaBreu &lt;- preprocessa("MunicipisLLEI.csv")
 ```
 
 ---
@@ -294,35 +249,24 @@ LleidaBreu &lt;- preprocessa(MunicipisLleida)
 
 ```r
 library(rvest)
-```
-
-```
-## 
-## Attaching package: 'rvest'
-```
-
-```
-## The following object is masked from 'package:readr':
-## 
-##     guess_encoding
-```
-
-```r
 brownies &lt;- read_html("https://www.allrecipes.com/recipe/25080/mmmmm-brownies/")
-
 ingredients &lt;- brownies %&gt;% 
-  html_elements( ".mntl-structured-ingredients__list") %&gt;% 
-  html_text2() %&gt;% stringr::str_split("\\n")
+  html_elements( "#mntl-structured-ingredients_1-0") %&gt;% 
+  html_text2() %&gt;% stringr::str_split("\\n\\n")
 
-xpath4Directions &lt;- '//*[(@id = "mntl-sc-block_2-0-1")] | //*[(@id = "mntl-sc-block_2-0-9")] | //*[(@id = "mntl-sc-block_2-0-5")] | //*[(@id = "mntl-sc-block_2-0-2")] | //*[(@id = "recipe__steps-heading_1-0")] | //*[contains(concat( " ", @class, " " ), concat( " ", "mntl-structured-ingredients__list", " " ))]'
+xpath4Directions &lt;- '//*[(@id = "recipe__steps_1-0")]'
 
 directions &lt;-  brownies %&gt;% 
   html_elements( xpath=xpath4Directions) %&gt;% 
-  html_text2()
+  html_text2() %&gt;% stringr::str_split("\\n\\n") 
 ```
+
+&lt;/div&gt;
+- Selectors were obtained inspecting the page source code with SelectorGadget or Google Developper tools.
 
 ---
 # The scraped recipe
+
 &lt;div style="font-size:12pt"&gt;
 .pull-left[
 
@@ -332,15 +276,16 @@ show(ingredients)
 
 ```
 ## [[1]]
-##  [1] "½ cup white sugar"                  ""                                  
-##  [3] "2 tablespoons butter"               ""                                  
-##  [5] "2 tablespoons water"                ""                                  
-##  [7] "1 ½ cups semisweet chocolate chips" ""                                  
-##  [9] "2 large eggs, beaten"               ""                                  
-## [11] "½ teaspoon vanilla extract"         ""                                  
-## [13] "⅔ cup all-purpose flour"            ""                                  
-## [15] "½ teaspoon salt"                    ""                                  
-## [17] "¼ teaspoon baking soda"
+##  [1] "Ingredients"                       
+##  [2] "½ cup white sugar"                 
+##  [3] "2 tablespoons butter"              
+##  [4] "2 tablespoons water"               
+##  [5] "1 ½ cups semisweet chocolate chips"
+##  [6] "2 large eggs, beaten"              
+##  [7] "½ teaspoon vanilla extract"        
+##  [8] "⅔ cup all-purpose flour"           
+##  [9] "½ teaspoon salt"                   
+## [10] "¼ teaspoon baking soda"
 ```
 ]
 .pull-right[
@@ -350,33 +295,37 @@ show(directions)
 ```
 
 ```
-## [1] "½ cup white sugar\n\n2 tablespoons butter\n\n2 tablespoons water\n\n1 ½ cups semisweet chocolate chips\n\n2 large eggs, beaten\n\n½ teaspoon vanilla extract\n\n⅔ cup all-purpose flour\n\n½ teaspoon salt\n\n¼ teaspoon baking soda"                                                                                          
-## [2] "Directions"                                                                                                                                                                                                                                                                                                                    
-## [3] "Preheat the oven to 325 degrees F (165 degrees C). Grease an 8-inch square pan."                                                                                                                                                                                                                                               
-## [4] "Preheat the oven to 325 degrees F (165 degrees C). Grease an 8-inch square pan."                                                                                                                                                                                                                                               
-## [5] "Combine sugar, butter, and water in a medium saucepan; cook and stir over medium heat until boiling. Remove from heat and stir in chocolate chips until melted and smooth; mix in eggs and vanilla. Combine flour, salt, and baking soda; stir into the chocolate mixture. Spread brownie batter evenly into the prepared pan."
-## [6] "Bake in the preheated oven until top is dry and edges have started to pull away from the sides of the pan, about 20 to 30 minutes. Let cool completely before cutting into squares.\n\ndotdash meredith food studios"
+## [[1]]
+## [1] "Directions"                                                                                                                                                                                                                                                                                                                    
+## [2] "Preheat the oven to 325 degrees F (165 degrees C). Grease an 8-inch square pan."                                                                                                                                                                                                                                               
+## [3] "Combine sugar, butter, and water in a medium saucepan; cook and stir over medium heat until boiling. Remove from heat and stir in chocolate chips until melted and smooth; mix in eggs and vanilla. Combine flour, salt, and baking soda; stir into the chocolate mixture. Spread brownie batter evenly into the prepared pan."
+## [4] "Bake in the preheated oven until top is dry and edges have started to pull away from the sides of the pan, about 20 to 30 minutes. Let cool completely before cutting into squares."                                                                                                                                           
+## [5] "dotdash meredith food studios"
 ```
 ]
 ---
 
-# A function to scrape brownies
+# A function to scrape recipes
 
+- Proceed similarly as before:
+  - abstracting the process and 
+  - turning what is different every time (URL) into arguments
+  
 &lt;div style="font-size:12pt"&gt;
 
 ```r
 scrape_recipes &lt;- function(URL) {
   aDessert &lt;- read_html(URL)
   ingredients &lt;- aDessert %&gt;% 
-    html_elements( ".mntl-structured-ingredients__list") %&gt;% 
-    html_text2() %&gt;% stringr::str_split("\\n")
+    html_elements( "#mntl-structured-ingredients_1-0") %&gt;% 
+    html_text2() %&gt;% stringr::str_split("\\n\\n")
 
-  xpath4Directions &lt;- '//*[(@id = "mntl-sc-block_2-0-1")] | //*[(@id = "mntl-sc-block_2-0-9")] | //*[(@id = "mntl-sc-block_2-0-5")] | //*[(@id = "mntl-sc-block_2-0-2")] | //*[(@id = "recipe__steps-heading_1-0")] | //*[contains(concat( " ", @class, " " ), concat( " ", "mntl-structured-ingredients__list", " " ))]'
+  xpath4Directions &lt;- '//*[(@id = "recipe__steps_1-0")]'
 
   directions &lt;-  aDessert %&gt;% 
     html_elements( xpath=xpath4Directions) %&gt;% 
-    html_text2()
-  return(list(Ingredientes=ingredients, Recepta=directions))
+    html_text2()%&gt;% stringr::str_split("\\n\\n")
+  return(list(Ingredientes=ingredients, Receta=directions))
 }
 ```
 
@@ -392,9 +341,7 @@ recipeURL &lt;- "https://www.allrecipes.com/recipe/25080/mmmmm-brownies/"
 brownies &lt;- scrape_recipes (recipeURL)
 ```
 &lt;/small&gt;
-
 &lt;div style="font-size:12pt"&gt;
-
 .pull-left[
 
 ```r
@@ -403,30 +350,32 @@ show(brownies[["Ingredientes"]])
 
 ```
 ## [[1]]
-##  [1] "½ cup white sugar"                  ""                                  
-##  [3] "2 tablespoons butter"               ""                                  
-##  [5] "2 tablespoons water"                ""                                  
-##  [7] "1 ½ cups semisweet chocolate chips" ""                                  
-##  [9] "2 large eggs, beaten"               ""                                  
-## [11] "½ teaspoon vanilla extract"         ""                                  
-## [13] "⅔ cup all-purpose flour"            ""                                  
-## [15] "½ teaspoon salt"                    ""                                  
-## [17] "¼ teaspoon baking soda"
+##  [1] "Ingredients"                       
+##  [2] "½ cup white sugar"                 
+##  [3] "2 tablespoons butter"              
+##  [4] "2 tablespoons water"               
+##  [5] "1 ½ cups semisweet chocolate chips"
+##  [6] "2 large eggs, beaten"              
+##  [7] "½ teaspoon vanilla extract"        
+##  [8] "⅔ cup all-purpose flour"           
+##  [9] "½ teaspoon salt"                   
+## [10] "¼ teaspoon baking soda"
 ```
 ]
 .pull-right[
 
 ```r
-show(show(brownies[["Recepta"]]))
+show(show(brownies[["Receta"]]))
 ```
 
 ```
-## [1] "½ cup white sugar\n\n2 tablespoons butter\n\n2 tablespoons water\n\n1 ½ cups semisweet chocolate chips\n\n2 large eggs, beaten\n\n½ teaspoon vanilla extract\n\n⅔ cup all-purpose flour\n\n½ teaspoon salt\n\n¼ teaspoon baking soda"                                                                                          
-## [2] "Directions"                                                                                                                                                                                                                                                                                                                    
-## [3] "Preheat the oven to 325 degrees F (165 degrees C). Grease an 8-inch square pan."                                                                                                                                                                                                                                               
-## [4] "Preheat the oven to 325 degrees F (165 degrees C). Grease an 8-inch square pan."                                                                                                                                                                                                                                               
-## [5] "Combine sugar, butter, and water in a medium saucepan; cook and stir over medium heat until boiling. Remove from heat and stir in chocolate chips until melted and smooth; mix in eggs and vanilla. Combine flour, salt, and baking soda; stir into the chocolate mixture. Spread brownie batter evenly into the prepared pan."
-## [6] "Bake in the preheated oven until top is dry and edges have started to pull away from the sides of the pan, about 20 to 30 minutes. Let cool completely before cutting into squares.\n\ndotdash meredith food studios"                                                                                                          
+## [[1]]
+## [1] "Directions"                                                                                                                                                                                                                                                                                                                    
+## [2] "Preheat the oven to 325 degrees F (165 degrees C). Grease an 8-inch square pan."                                                                                                                                                                                                                                               
+## [3] "Combine sugar, butter, and water in a medium saucepan; cook and stir over medium heat until boiling. Remove from heat and stir in chocolate chips until melted and smooth; mix in eggs and vanilla. Combine flour, salt, and baking soda; stir into the chocolate mixture. Spread brownie batter evenly into the prepared pan."
+## [4] "Bake in the preheated oven until top is dry and edges have started to pull away from the sides of the pan, about 20 to 30 minutes. Let cool completely before cutting into squares."                                                                                                                                           
+## [5] "dotdash meredith food studios"                                                                                                                                                                                                                                                                                                 
+## 
 ## NULL
 ```
 ]
@@ -443,7 +392,6 @@ name: flowchange
 
 # Changing the flow of execution
 
-**Scripts are executed _lineally_**
 
 - R, as most ordinary programming languages, is executed lineally, that is from the first to last line.
 - Sometimes this needs to be changed.
@@ -484,16 +432,22 @@ name: flowchange
 llistaMunicipis &lt;- c("MunicipisBAR.csv", "MunicipisGIR.csv", 
                      "MunicipisLLE.csv", "MunicipisTAR.csv" )
 for (nomFitxerMunicipis in llistaMunicipis) {
-  municipisProvincia &lt;- read_csv("nomFitxerMunicipis")
-  preprocessa(municipisProvincia)
+  municipisProvincia &lt;- preprocessa("nomFitxerMunicipis")
   summary(municipisProvincia)
 }
 ```
+An alternative way to run the loop:
+
+```r
+for (i in 1:length(llistaMunicipis) {
+  municipisProvincia &lt;- preprocessa(llistaMunicipis[i])
+```
+
 ---
 
 # Exercise
 
-- Create a `for` loop that reads all .csv filenames in your datasets directory (or the directory you decide) and prints the name of the file and the column names in the screen.
+- Create a `for` loop that reads all filenames in your datasets directory (or the directory you decide) and prints the name of the file and the column names in the screen.
 
 ---
 
@@ -501,7 +455,7 @@ for (nomFitxerMunicipis in llistaMunicipis) {
 
 - Imagine we want to process not one but many desserts' recipes from the web 
 "https://www.allrecipes.com/".
-- THis can be done using a simple for loop:
+- This can be done using a simple for loop:
 
 
 &lt;div style="font-size:11pt"&gt;
@@ -515,6 +469,10 @@ for (i in 1:length(recipe_urls)) {
   listOfRecipes[i] &lt;- scrape_recipes(recipe_urls[i])
 }
 ```
+&lt;div&gt;
+
+&lt;div style="font-size:18pt"&gt;
+- Notice that the resulting scraped recipes are now stored in a _list_ that will be eventually processed by the user.
 
 ---
 # Exercise
@@ -522,40 +480,7 @@ for (i in 1:length(recipe_urls)) {
 - Write a simple function to print one recipes obtained using the function `scrape_recipes`
 
 - Use this function to print all the recipes collected in the list "listOfRecipes" 
----
-
-# Conditional statements: `if - else`.
-
-- Conditional statements allow different blocks to be executed whether a certain condition is TRUE or FALSE.
-
-
-```r
-    if (test_expression) {
-        statement
-      }
-```
-- If the `test_expression` is TRUE, the `statement` gets executed. But if it's FALSE, nothing happens.
-- Here, `test_expression` can be a logical or numeric vector, but only the first element is taken into consideration.
-- In numeric vectors, zero is taken as FALSE, rest as TRUE.
-
-
----
-
-# Conditional statements: `if - else`.
-
-
-
-```r
-    if (test_expression) {
-        statement_1
-    }else{
-        statement_2
-      }
-```
-
-- If the `test_expression` is TRUE, then `statement_1` gets executed. 
-- If it's FALSE then `statement_2` gets executed. 
-
+-
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>

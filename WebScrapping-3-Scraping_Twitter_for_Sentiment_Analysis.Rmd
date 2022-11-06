@@ -96,13 +96,7 @@ Preparing data acquisition from twitter
 <!-- ``` -->
 <!-- Next we create an object "cred" that will save the authenticated object that we can use for later sessions. -->
 
-<!-- ```{r eval=FALSE} -->
-<!-- cred <- OAuthFactory$new(consumerKey='XMAYl2tKiRYro43E9rSQG870Z', -->
-<!--       consumerSecret='a446H2hii2WZeTwXLQqnDpIL0dnRbauoCkgO4L7jsljt4cLEPR', -->
-<!--       requestURL='https://api.twitter.com/oauth/request_token', -->
-<!--       accessURL='https://api.twitter.com/oauth/access_token', -->
-<!--       authURL='https://api.twitter.com/oauth/authorize') -->
-<!-- ``` -->
+
 
 <!-- Authentication (2): Use credentials -->
 <!-- ======================================================== -->
