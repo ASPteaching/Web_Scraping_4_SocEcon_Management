@@ -208,15 +208,16 @@ library(rvest)
 brownies <- read_html("https://www.allrecipes.com/recipe/25080/mmmmm-brownies/")
 
 ingredients <- brownies %>% 
-  html_elements( ".mntl-structured-ingredients__list") %>% 
+  html_elements( "#mntl-structured-ingredients_1-0") %>% 
   html_text2() %>% stringr::str_split("\\n")
+show(ingredients)
 
-xpath4Directions <- '//*[(@id = "mntl-sc-block_2-0-1")] | //*[(@id = "mntl-sc-block_2-0-9")] | //*[(@id = "mntl-sc-block_2-0-5")] | //*[(@id = "mntl-sc-block_2-0-2")] | //*[(@id = "recipe__steps-heading_1-0")] | //*[contains(concat( " ", @class, " " ), concat( " ", "mntl-structured-ingredients__list", " " ))]'
+xpath4Directions <- '//*[(@id = "recipe__steps_1-0")]'
 
 directions <-  brownies %>% 
   html_elements( xpath=xpath4Directions) %>% 
-  html_text2()
-
+  html_text2() %>% stringr::str_split("\\n\\n") 
+show(directions)
 ```
 
 ---
@@ -241,10 +242,10 @@ show(directions)
 scrape_recipes <- function(URL) {
   aDessert <- read_html(URL)
   ingredients <- aDessert %>% 
-    html_elements( ".mntl-structured-ingredients__list") %>% 
-    html_text2() %>% stringr::str_split("\\n")
+    html_elements( "#mntl-structured-ingredients_1-0") %>% 
+    html_text2() %>% stringr::str_split("\\n\\n")
 
-  xpath4Directions <- '//*[(@id = "mntl-sc-block_2-0-1")] | //*[(@id = "mntl-sc-block_2-0-9")] | //*[(@id = "mntl-sc-block_2-0-5")] | //*[(@id = "mntl-sc-block_2-0-2")] | //*[(@id = "recipe__steps-heading_1-0")] | //*[contains(concat( " ", @class, " " ), concat( " ", "mntl-structured-ingredients__list", " " ))]'
+  xpath4Directions <- '//*[(@id = "recipe__steps_1-0")]'
 
   directions <-  aDessert %>% 
     html_elements( xpath=xpath4Directions) %>% 

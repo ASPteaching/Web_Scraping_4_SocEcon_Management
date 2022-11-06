@@ -1,0 +1,108 @@
+---
+title: "Scraping PDF files R"
+author: Alex Sanchez and Francesc Carmona
+institute: Genetics Microbiology and Statistics Department <br> Universitat de Barcelona
+date: October 2022 # "`r Sys.Date()`"
+output:
+  xaringan::moon_reader:
+    css: [default, metropolis, metropolis-fonts, "css4WScourse.css" ]
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: true
+editor_options: 
+  chunk_output_type: console
+---
+
+<style type="text/css">
+.remark-slide-content {
+    font-size: 28px;
+    padding: 1em 2em 1em 2em;
+}
+.left-code {
+  color: #777;
+  width: 38%;
+  height: 92%;
+  float: left;
+}
+.right-plot {
+  width: 60%;
+  float: right;
+  padding-left: 1%;
+}
+<style>
+span.small {
+  font-size: smaller;
+}
+</style>
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE, echo=TRUE,
+        message=FALSE,warning=FALSE,
+        fig.dim=c(4.8, 4.5), fig.retina=2, out.width="100%")
+
+knitr::opts_chunk$set(echo = TRUE)
+
+knitr::knit_hooks$set(mysize = function(before, options, envir) {
+  if (before) 
+    return(options$size)
+})
+```
+
+# Outline
+
+.columnwide[
+  ### 1) [Introduction](#Introduction)
+  ### 2) [Packages to extract information from PDF](#pdfPackages)
+  ### 3) [Some examples](#Examples)
+  ### 4) [References and Resources](#Resources)
+]
+
+---
+
+class: inverse, middle, center
+
+name: Introduction
+
+# Introduction
+
+---
+
+# Introduction
+
+---
+
+class: inverse, middle, center
+
+name: pdfPackages
+
+# Packages to extract information from PDFs
+
+---
+# A random list of packages
+
+- [pdftools](https://docs.ropensci.org/pdftools/)
+- [pdftables](https://github.com/expersso/pdftables)
+- [PDF Data Extractor (PDE)](https://cran.r-project.org/web/packages/PDE)
+
+
+---
+
+class: inverse, middle, center
+
+name: Examples
+
+# Some examples
+
+---
+
+class: inverse, middle, center
+
+name: Ressources
+
+# References and Ressources
+
+
+
+
