@@ -106,6 +106,37 @@ needs
 
 ```r
 library(dplyr); library(janitor)
+```
+
+```
+## 
+## Attaching package: 'dplyr'
+```
+
+```
+## The following objects are masked from 'package:stats':
+## 
+##     filter, lag
+```
+
+```
+## The following objects are masked from 'package:base':
+## 
+##     intersect, setdiff, setequal, union
+```
+
+```
+## 
+## Attaching package: 'janitor'
+```
+
+```
+## The following objects are masked from 'package:stats':
+## 
+##     chisq.test, fisher.test
+```
+
+```r
 MunicipisBARC &lt;- read.csv("datasets/MunicipisBARC.csv", quote='"')
 MunicipisBreu &lt;- MunicipisBARC %&gt;% select (2,9,10,27,28) %&gt;%  
   janitor::clean_names() %&gt;% 
@@ -125,20 +156,20 @@ summary(MunicipisBARC[,c(2,9,10,27,28)])
 ```
 
 ```
-##     Codi.INE    Codi.de.comarca Nom.de.la.comarca 
-##  Min.   :8001   Min.   : 3.00   Length:311        
-##  1st Qu.:8078   1st Qu.: 7.00   Class :character  
-##  Median :8156   Median :17.00   Mode  :character  
-##  Mean   :8166   Mean   :19.73                     
-##  3rd Qu.:8236   3rd Qu.:24.00                     
-##  Max.   :8905   Max.   :42.00                     
-##  Nombre.d.habitants     Extensió     
-##  Min.   :     27.0   Min.   :  0.40  
-##  1st Qu.:    734.5   1st Qu.: 11.01  
-##  Median :   3219.0   Median : 21.17  
-##  Mean   :  18375.3   Mean   : 24.90  
-##  3rd Qu.:  11010.5   3rd Qu.: 34.12  
-##  Max.   :1636732.0   Max.   :102.90
+##     Codi.INE    Codi.de.comarca Nom.de.la.comarca  Nombre.d.habitants 
+##  Min.   :8001   Min.   : 3.00   Length:311         Min.   :     27.0  
+##  1st Qu.:8078   1st Qu.: 7.00   Class :character   1st Qu.:    734.5  
+##  Median :8156   Median :17.00   Mode  :character   Median :   3219.0  
+##  Mean   :8166   Mean   :19.73                      Mean   :  18375.3  
+##  3rd Qu.:8236   3rd Qu.:24.00                      3rd Qu.:  11010.5  
+##  Max.   :8905   Max.   :42.00                      Max.   :1636732.0  
+##     Extensió     
+##  Min.   :  0.40  
+##  1st Qu.: 11.01  
+##  Median : 21.17  
+##  Mean   : 24.90  
+##  3rd Qu.: 34.12  
+##  Max.   :102.90
 ```
 ]
 
@@ -150,21 +181,21 @@ summary(MunicipisBreu)
 ```
 
 ```
-##     codi_ine    codi_de_comarca       nom_de_la_comarca
-##  Min.   :8001   24     : 47     Osona          : 47    
-##  1st Qu.:8078   41     : 39     Vallès Oriental: 39    
-##  Median :8156   6      : 33     Anoia          : 33    
-##  Mean   :8166   7      : 30     Bages          : 30    
-##  3rd Qu.:8236   11     : 30     Baix Llobregat : 30    
-##  Max.   :8905   14     : 30     Berguedà       : 30    
-##                 (Other):102     (Other)        :102    
-##  nombre_d_habitants     extensio     
-##  Min.   :     27.0   Min.   :  0.40  
-##  1st Qu.:    734.5   1st Qu.: 11.01  
-##  Median :   3219.0   Median : 21.17  
-##  Mean   :  18375.3   Mean   : 24.90  
-##  3rd Qu.:  11010.5   3rd Qu.: 34.12  
-##  Max.   :1636732.0   Max.   :102.90  
+##     codi_ine    codi_de_comarca       nom_de_la_comarca nombre_d_habitants 
+##  Min.   :8001   24     : 47     Osona          : 47     Min.   :     27.0  
+##  1st Qu.:8078   41     : 39     Vallès Oriental: 39     1st Qu.:    734.5  
+##  Median :8156   6      : 33     Anoia          : 33     Median :   3219.0  
+##  Mean   :8166   7      : 30     Bages          : 30     Mean   :  18375.3  
+##  3rd Qu.:8236   11     : 30     Baix Llobregat : 30     3rd Qu.:  11010.5  
+##  Max.   :8905   14     : 30     Berguedà       : 30     Max.   :1636732.0  
+##                 (Other):102     (Other)        :102                        
+##     extensio     
+##  Min.   :  0.40  
+##  1st Qu.: 11.01  
+##  Median : 21.17  
+##  Mean   : 24.90  
+##  3rd Qu.: 34.12  
+##  Max.   :102.90  
 ## 
 ```
 
@@ -276,16 +307,11 @@ show(ingredients)
 
 ```
 ## [[1]]
-##  [1] "Ingredients"                       
-##  [2] "½ cup white sugar"                 
-##  [3] "2 tablespoons butter"              
-##  [4] "2 tablespoons water"               
-##  [5] "1 ½ cups semisweet chocolate chips"
-##  [6] "2 large eggs, beaten"              
-##  [7] "½ teaspoon vanilla extract"        
-##  [8] "⅔ cup all-purpose flour"           
-##  [9] "½ teaspoon salt"                   
-## [10] "¼ teaspoon baking soda"
+##  [1] "Ingredients"                        "½ cup white sugar"                 
+##  [3] "2 tablespoons butter"               "2 tablespoons water"               
+##  [5] "1 ½ cups semisweet chocolate chips" "2 large eggs, beaten"              
+##  [7] "½ teaspoon vanilla extract"         "⅔ cup all-purpose flour"           
+##  [9] "½ teaspoon salt"                    "¼ teaspoon baking soda"
 ```
 ]
 .pull-right[
@@ -350,16 +376,11 @@ show(brownies[["Ingredientes"]])
 
 ```
 ## [[1]]
-##  [1] "Ingredients"                       
-##  [2] "½ cup white sugar"                 
-##  [3] "2 tablespoons butter"              
-##  [4] "2 tablespoons water"               
-##  [5] "1 ½ cups semisweet chocolate chips"
-##  [6] "2 large eggs, beaten"              
-##  [7] "½ teaspoon vanilla extract"        
-##  [8] "⅔ cup all-purpose flour"           
-##  [9] "½ teaspoon salt"                   
-## [10] "¼ teaspoon baking soda"
+##  [1] "Ingredients"                        "½ cup white sugar"                 
+##  [3] "2 tablespoons butter"               "2 tablespoons water"               
+##  [5] "1 ½ cups semisweet chocolate chips" "2 large eggs, beaten"              
+##  [7] "½ teaspoon vanilla extract"         "⅔ cup all-purpose flour"           
+##  [9] "½ teaspoon salt"                    "¼ teaspoon baking soda"
 ```
 ]
 .pull-right[
@@ -475,6 +496,7 @@ for (i in 1:length(recipe_urls)) {
 - Notice that the resulting scraped recipes are now stored in a _list_ that will be eventually processed by the user.
 
 ---
+
 # Exercise
 
 - Write a simple function to print one recipes obtained using the function `scrape_recipes`

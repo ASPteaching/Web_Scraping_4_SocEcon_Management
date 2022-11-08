@@ -61,7 +61,8 @@ span.small {
   ### 1) [Introduction: What is _parsing_](#Introduction)
   ### 2) [Parsing HTML with `rvest``](#rvest)
   ### 3) [Using CSS selectors to locate information](#css)
-  ### 4) [References and Resources](#Resources)
+  ### 4) [Improved selection using XPATH](#xpath)
+  ### 5) [References and Resources](#Resources)
 ]
 
 ---
@@ -169,8 +170,8 @@ myHTML
 ```
 ## {html_document}
 ## &lt;html&gt;
-## [1] &lt;head&gt;\n&lt;meta http-equiv="Content-Type" content="text/html; charset=UTF-8"&gt;\n&lt;title&gt;Collected R wisdom ...
-## [2] &lt;body&gt;\n&lt;div id="R Inventor" lang="english" date="June/2003"&gt;\n  &lt;h1&gt;Robert Gentleman&lt;/h1&gt;\n  &lt;p&gt;&lt;i&gt;'W ...
+## [1] &lt;head&gt;\n&lt;meta http-equiv="Content-Type" content="text/html; charset=UTF-8 ...
+## [2] &lt;body&gt;\n&lt;div id="R Inventor" lang="english" date="June/2003"&gt;\n  &lt;h1&gt;Robe ...
 ```
 
 ---
@@ -393,12 +394,13 @@ head(M2, n=3)
 
 ```
 ## # A tibble: 3 × 9
-##   Name                            Image Location                 Crite…¹ Areah…² Year …³ Endan…⁴ Reason Refs 
-##   &lt;chr&gt;                           &lt;lgl&gt; &lt;chr&gt;                    &lt;chr&gt;   &lt;chr&gt;     &lt;int&gt; &lt;chr&gt;   &lt;chr&gt;  &lt;chr&gt;
-## 1 Abu Mena                        NA    EgyAbusir, Egypt.mw-par… Cultur… 182 (4…    1979 2001–   "Cave… [17]…
-## 2 Air and Ténéré Natural Reserves NA    Niger1Arlit Department,… Natura… 7,736,…    1991 1992–   "Mili… [20]…
-## 3 Ancient City of Aleppo          NA    Aleppo Governorate,  Sy… Cultur… 350 (8…    1986 2013–   "Syri… [22] 
-## # … with abbreviated variable names ¹​Criteria, ²​`Areaha (acre)`, ³​`Year (WHS)`, ⁴​Endangered
+##   Name                Image Locat…¹ Crite…² Areah…³ Year …⁴ Endan…⁵ Reason Refs 
+##   &lt;chr&gt;               &lt;lgl&gt; &lt;chr&gt;   &lt;chr&gt;   &lt;chr&gt;     &lt;int&gt; &lt;chr&gt;   &lt;chr&gt;  &lt;chr&gt;
+## 1 Abu Mena            NA    EgyAbu… Cultur… 182 (4…    1979 2001–   "Cave… [17]…
+## 2 Air and Ténéré Nat… NA    Niger1… Natura… 7,736,…    1991 1992–   "Mili… [20]…
+## 3 Ancient City of Al… NA    Aleppo… Cultur… 350 (8…    1986 2013–   "Syri… [22] 
+## # … with abbreviated variable names ¹​Location, ²​Criteria, ³​`Areaha (acre)`,
+## #   ⁴​`Year (WHS)`, ⁵​Endangered
 ```
 
 ---
@@ -486,8 +488,8 @@ theLanguages
 ```
 
 ```
-## [1] "Python"                    "A nicely built language"   "R"                        
-## [4] "Has prettier charts, too."
+## [1] "Python"                    "A nicely built language"  
+## [3] "R"                         "Has prettier charts, too."
 ```
 
 ]
@@ -512,12 +514,13 @@ head(oneTable, n=3)
 
 ```
 ## # A tibble: 3 × 9
-##   Name                            Image Location                 Crite…¹ Areah…² Year …³ Endan…⁴ Reason Refs 
-##   &lt;chr&gt;                           &lt;lgl&gt; &lt;chr&gt;                    &lt;chr&gt;   &lt;chr&gt;     &lt;int&gt; &lt;chr&gt;   &lt;chr&gt;  &lt;chr&gt;
-## 1 Abu Mena                        NA    EgyAbusir, Egypt.mw-par… Cultur… 182 (4…    1979 2001–   "Cave… [17]…
-## 2 Air and Ténéré Natural Reserves NA    Niger1Arlit Department,… Natura… 7,736,…    1991 1992–   "Mili… [20]…
-## 3 Ancient City of Aleppo          NA    Aleppo Governorate,  Sy… Cultur… 350 (8…    1986 2013–   "Syri… [22] 
-## # … with abbreviated variable names ¹​Criteria, ²​`Areaha (acre)`, ³​`Year (WHS)`, ⁴​Endangered
+##   Name                Image Locat…¹ Crite…² Areah…³ Year …⁴ Endan…⁵ Reason Refs 
+##   &lt;chr&gt;               &lt;lgl&gt; &lt;chr&gt;   &lt;chr&gt;   &lt;chr&gt;     &lt;int&gt; &lt;chr&gt;   &lt;chr&gt;  &lt;chr&gt;
+## 1 Abu Mena            NA    EgyAbu… Cultur… 182 (4…    1979 2001–   "Cave… [17]…
+## 2 Air and Ténéré Nat… NA    Niger1… Natura… 7,736,…    1991 1992–   "Mili… [20]…
+## 3 Ancient City of Al… NA    Aleppo… Cultur… 350 (8…    1986 2013–   "Syri… [22] 
+## # … with abbreviated variable names ¹​Location, ²​Criteria, ³​`Areaha (acre)`,
+## #   ⁴​`Year (WHS)`, ⁵​Endangered
 ```
 
 ---
@@ -620,16 +623,171 @@ htmlObj %&gt;%
 	html_elements('.first + .second &gt; div, 
 	              div.second.paragraph &gt; div')
 ```
-
 ]
 &lt;/div&gt;
 ---
 
+
+class: inverse, middle, center
+
+name: xpath
+  
+# Improved selection using XPATH
+
+---
+
+# What is XPATH
+
+- The **real power of parsing** comes from the ability to 
+  + *locate* nodes and 
+  + *extract* information from them.
+- Sometimes, however, it may be complicated to identify the exact piece we wish to extract from a chunk of html.
+- A good alternative to combinations of selectors is provided by XPATH.
+- XPATH is __a language to navigate through elements and attributes in an XML/HTML document__
+
+---
+
+# Example: Locating items (1)
+
+.pull-left[
+&lt;img src="images/xpathExample1.png" width="404" /&gt;
+]
+
+&lt;div style="font-size:13pt"&gt;
+.pull-right[
+
+
+```r
+instruction &lt;- "html %&gt;%
+   html_elements(xpath = '//p')"
+# CSS selector equivalent: p
+```
+
+
+```r
+instruction &lt;- "html %&gt;%
+   html_elements(xpath = '//body//p')"
+# CSS selector equivalent: body p
+```
+
+
+```r
+instruction &lt;- "html %&gt;%
+   html_elements(xpath = '/html/body//p')"
+# CSS selector equivalent: html &gt; body p
+```
+]
+
+---
+
+# Example: Locating items (2)
+
+.pull-left[
+&lt;img src="images/xpathExample2.png" width="404" /&gt;
+]
+
+.pull-right[
+&lt;div style="font-size:13pt"&gt;
+
+```r
+instruction &lt;- "html %&gt;% 
+html_elements(xpath = '//div/p')"
+# CSS selector equivalent: div &gt; p
+```
+]
+
+---
+
+# Example: Locating (3)
+
+.pull-left[
+&lt;img src="images/xpathExample3.png" width="403" /&gt;
+]
+
+.pull-right[
+&lt;div style="font-size:14pt"&gt;
+
+
+```r
+instruction &lt;- "html %&gt;%
+html_elements(xpath = '//div[a]')"
+# CSS selector equivalent: none"
+```
+]
+
+---
+
+# XPATH syntax
+
+- XPATH uses __path expressions__ to select nodes in an XML document. 
+- It has a computational model to identify sets of nodes (node-sets).
+- We can specify paths through the tree structure:
+    + based on node names
+    + based on node content
+    + based on a node’s relationship to other nodes
+---
+
+# Writing XPATH sentences
+
+- The key concept is knowing to write XPATH expressions.
+- XPATH expressions have a syntax similar to the way files are located in a hierarchy of directories/folders in a computer file system. 
+- For instance, the XPATH expression to locate the first "span" _that is the child_ of a "div" element, the syntax is:
+
+
+```r
+'//div/span'
+```
+- XPATH sentences may look strange, but they are automatically provided by selectorGadget or Google developper tools
+
+---
+# Getting XPATH for a given selector
+&lt;div style="font-size:15pt"&gt;
+.pull-left[
+- Go to page "https://www.allrecipes.com/recipe/25080/mmmmm-brownies/"
+- Select the "Recipe" block and use Google Developper Tools (right button --&gt; "Inspeccionar") to inspect the selector associated with it.
+- Use the right button again to copy to clipboard either:
+  - The selector
+  - Its XPATH translation
+- Check that it works parsing the url and sending the selectors to html_element
+]
+
+.pull-right[
+&lt;img src="images/inspectSelectors1.png" width="1645" /&gt;
+
+selector : "#recipe\_\_steps\_1-0"
+
+xpath : '//*[@id="recipe\_\_steps\_1-0"]`'
+]
+
+---
+# XPATH main expressions
+
+- The main path expressions (ie symbols) are:
+
+&lt;div align="center"&gt;
+&lt;img src="images/XPathSyntax1.png" width="100%" style="float:centered"/&gt;
+&lt;/div&gt;
+
+---
+
+# XPATH wildcards
+
+- XPATH wildcards can be used to select unknown elements
+
+&lt;div align="center"&gt;
+&lt;img src="images/XPathWildcards1.png" width="100%" style="float:centered"/&gt;
+&lt;/div&gt;
+
+---
 class: inverse, middle, center
 
 name: Resources
 
 # References and Resources
+
+- [HTML Parsing and Screen Scraping with the Simple HTML DOM Library](https://code.tutsplus.com/tutorials/html-parsing-and-screen-scraping-with-the-simple-html-dom-library--net-11856)
+
+- [A guide to CSS selectors for Web Scraping](https://datagrab.io/blog/guide-to-css-selectors-for-web-scraping/)
 
 ---
 

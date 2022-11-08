@@ -372,6 +372,7 @@ for (i in 1:length(recipe_urls)) {
 - Notice that the resulting scraped recipes are now stored in a _list_ that will be eventually processed by the user.
 
 ---
+
 # Exercise
 
 - Write a simple function to print one recipes obtained using the function `scrape_recipes`

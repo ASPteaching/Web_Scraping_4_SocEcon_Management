@@ -1,0 +1,263 @@
+---
+title: "Extracting data from PDF files"
+author: "Alex Sánchez"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    code_folding: show
+    toc: yes
+    toc_float:
+      toc_collapsed: yes
+    toc_depth: 3
+    theme: cosmo
+    highlight: textmate
+    number_sections: yes
+editor_options: 
+  chunk_output_type: console
+  markdown: 
+    wrap: 72
+# theme args should be one of: "default", "cerulean", "journal", "flatly", "darkly", "readable", "spacelab", "united", "cosmo", "lumen", "paper", "sandstone", "simplex", "yeti"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction
+
+Some examples from distinct sources on getting data from PDFs
+
+# Extracting tables with the `tabulizer`package
+
+A very popular package that has been removed from CRAN due to its dependence of JAVA abd ' rJAVA`
+
+Still in development and available from github: https://github.com/ropensci/tabulizer
+
+## Example
+
+```{r}
+library("tabulizer")
+f <- system.file("examples", "data.pdf", package = "tabulizer")
+out1 <- extract_tables(f)
+str(out1)
+```
+## A more elaborated example
+
+This has been adapted from the R-bloggers entry:  
+[PDF Scraping in R with tabulizer](https://www.r-bloggers.com/2019/09/pdf-scraping-in-r-with-tabulizer/)
+
+### Prepare environment and load packages
+
+Install tabulizer if not available
+```{r eval=FALSE}
+if (!require("remotes")) {
+    install.packages("remotes")
+}
+# on 64-bit Windows
+remotes::install_github(c("ropensci/tabulizerjars", "ropensci/tabulizer"), INSTALL_opts = "--no-multiarch")
+# elsewhere
+remotes::install_github(c("ropensci/tabulizerjars", "ropensci/tabulizer"))
+```
+
+Load required libraries
+
+```{r}
+require(tabulizer)
+library(tidyverse)
+```
+
+### Extract the desired table from the pdf file
+
+We’ll use the extract_tables() function to pull out each of the tables from the Endangered Species Report. This returns a list of data.frames.
+
+We are interested in the first table - the "Critically Endangered Species". It is extracted it using the `pluck()` function, an implementation of the "pop" operation on lists that extracts elements from its top, and converted into a `tibble()` (the tidy data frame format).
+
+```{r}
+# myURL <- "https://github.com/Coopmeister/data_science_r_projects/blob/master/endangered_species.pdf"
+# myFile <- "endangered_species.pdf"
+# download.file(url=myURL, destfile=myFile)
+
+myFile <- "endangered_species.pdf"
+endangered_species_scrape <- extract_tables(
+    file   = myFile, 
+    method = "decide", 
+    output = "data.frame")
+endangered_species_raw_tbl <- endangered_species_scrape %>% 
+    pluck(1) %>% 
+    as_tibble()
+# Show first 6 rows
+endangered_species_raw_tbl %>% head() %>% knitr::kable()
+```
+
+### Clean Up Column Names
+
+"Original" column names have been saved in the first row but we want these to be our table's column names.
+
+There are distinct ways to do this process but it is worth the pity to do it accurately to avoid trying to set a column name with a missing value or a repetitive one. The article's author does it in a rather hard but secure way.
+
+```{r}
+# Get column names from Row 1
+col_names <- endangered_species_raw_tbl %>%
+    slice(1) %>%
+    pivot_longer(cols = everything()) %>%
+    mutate(value = ifelse(is.na(value), "Missing", value)) %>%
+    pull(value)
+# Overwrite names and remove Row 1
+endangered_species_renamed_tbl <- endangered_species_raw_tbl %>%
+    set_names(col_names) %>%
+    slice(-1)
+# Show first 6 rows
+endangered_species_renamed_tbl %>% head() %>% knitr::kable()
+```
+
+### Tidy the data
+
+There are a few issues with the data:
+
+1. Remove columns with NAs: Column labelled “Missing” is all NA’s - We can just drop this column
+
+2. Fix columns that were combined: Three of the columns are combined - Amphibians, Fishes, and Insects - We can separate() these into 3 columns
+
+3. Convert to (Tidy) Long Format for visualization: The data is in “wide” format, which isn’t tidy - We can use pivot_longer() to convert to “long” format with one observation for each row
+
+4. Fix numeric data stored as character: The numeric data is stored as character and several of the numbers have commas - We’ll remove commas and convert to numeric
+
+5. Convert Character Year & species to Factor: The year and species columns are character - We can convert to factor for easier adjusting of the order in the ggplot2 visualizations
+
+6. Percents by year: The visualizations will have a percent (proportion) included so we can see which species have the most endangered - We can add proportions by each year
+
+```{r}
+endangered_species_final_tbl <- endangered_species_renamed_tbl %>%
+  
+    # 1. Remove columns with NAs
+    select_if(~ !all(is.na(.))) %>%
+    
+    # 2. Fix columns that were combined
+    separate(col  = `Amphibians Fishes Insects`, 
+             into = c("Amphibians", "Fishes", "Insects"), 
+             sep  = " ") %>%
+    
+    # 3. Convert to (Tidy) Long Format for visualization
+    pivot_longer(cols = -Year, names_to = "species", values_to = "number") %>%
+    
+    # 4. Fix numeric data stored as character
+    mutate(number = str_remove_all(number, ",")) %>%
+    mutate(number = as.numeric(number)) %>%
+    
+    # 5. Convert Character Year & species to Factor
+    mutate(Year = as_factor(Year)) %>%
+    mutate(species = as.factor(species)) %>%
+    
+    # 6. Percents by year
+    group_by(Year) %>%
+    mutate(percent = number / sum(number)) %>%
+    mutate(label = scales::percent(percent)) %>%
+    ungroup()
+# Show first 6 rows
+endangered_species_final_tbl %>% head() %>% knitr::kable()
+```
+
+
+### Summarize and Visualize the data
+
+The chances here are infinite, but, why not remember that the reason why we are doing this with R is that we may want to end up analyzing the data?
+
+#### Summary visualization
+
+
+```{r}
+endangered_species_final_tbl %>%
+    mutate(Year = fct_rev(Year)) %>%
+    
+    ggplot(aes(x = Year, y = number, fill = species)) +
+    
+    # Geoms
+    geom_bar(position = position_stack(), stat = "identity", width = .7) +
+    geom_text(aes(label = label), position = position_stack(vjust= 0.5), size = 2) +
+    coord_flip() +
+    
+    # Theme
+    labs(
+        title = "Critically Endangered Species",
+        y = "Number of Species Added to Critically Endangered List", x = "Year"
+    ) +
+    theme_minimal()
+```
+
+#### Trends Over Time by Species
+
+
+```{r}
+endangered_species_final_tbl %>%
+    mutate(Year = fct_rev(Year)) %>%
+    
+    # Geom
+    ggplot(aes(Year, number, color = species, group = species)) +
+    geom_point() +
+    geom_smooth(method = "loess") + 
+    facet_wrap(~ species, scales = "free_y", ncol = 3) +
+    
+    # Theme
+    expand_limits(y = 0) +
+    theme_minimal() +
+    theme(legend.position = "none",
+          axis.text.x = element_text(angle = 45, hjust = 1)) +
+    labs(
+        title = "Critically Endangered Species",
+        subtitle = "Trends Not Improving",
+        x = "", y = "Changes in Number of Species in Threatened Category"
+    )
+```
+
+# Extracting text with `pdftools`
+
+- Imagine we need to convert a pdf file from the "BOLETÍN OFICIAL DEL REGISTRO MERCANTIL"
+[https://www.boe.es/borme/dias/2022/10/05/pdfs/BORME-A-2022-191-08.pdf](https://www.boe.es/borme/dias/2022/10/05/pdfs/BORME-A-2022-191-08.pdf)
+
+- Start downloading the file on which we are interested.
+
+```{r}
+myURL <- "https://www.boe.es/borme/dias/2022/10/05/pdfs/BORME-A-2022-191-08.pdf"
+myFilename <-"BORME-A-2022-191-08.pdf"
+download.file(url=myURL, destfile=myFilename)
+```
+
+- PDF file is extracted as a vector of character strings
+- Each string contains a page of the document
+- Once the data is available it may/must be cleaned using R text analysis capabilities
+
+```{r}
+library(pdftools)
+txt <- pdf_text(myFilename)
+class(txt)
+length(txt)
+cat(txt[1])
+```
+
+## Getting more information
+
+- In addition to reading in our .pdf file, we may want to extract certain metadata about it as well. 
+- pdftools has a few handyu functions that can be used to extract things 
+  - the number of pages: `pdf_info()`
+  - the fonts being used:  `pdf_fonts()` 
+  - the table of contents: `pdf_toc()`
+  - whether there are any attachments: `pdf_attachments()` 
+  - or the original date and time the document was created: `pdf_pagesize()` 
+
+
+# Some Resources 
+
+-[PDF Scraping in R with tabulizer](https://www.r-bloggers.com/2019/09/pdf-scraping-in-r-with-tabulizer/)
+
+-[Converting PDFs to txt files with R](https://ladal.edu.au/pdf2txt.html)
+-[Getting your .pdfs into R](https://alexluscombe.ca/post/r-pdftools/)
+-[Parsing your .pdfs in R](https://alexluscombe.ca/blog/parsing-your-.pdfs-in-r/)
+
+-[https://learningactors.com/how-to-extract-and-clean-data-from-pdf-files-in-r/](https://learningactors.com/how-to-extract-and-clean-data-from-pdf-files-in-r/)
+-[Scrape tables from PDF](https://crimebythenumbers.com/scrape-table.html)
+
+
+
+
+
+

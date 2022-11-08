@@ -57,7 +57,8 @@ knitr::knit_hooks$set(mysize = function(before, options, envir) {
   ### 1) [Introduction: What is _parsing_](#Introduction)
   ### 2) [Parsing HTML with `rvest``](#rvest)
   ### 3) [Using CSS selectors to locate information](#css)
-  ### 4) [References and Resources](#Resources)
+  ### 4) [Improved selection using XPATH](#xpath)
+  ### 5) [References and Resources](#Resources)
 ]
 
 ---
@@ -532,16 +533,173 @@ htmlObj %>%
 	html_elements('.first + .second > div, 
 	              div.second.paragraph > div')
 ```
-
 ]
 </div>
 ---
 
+
+class: inverse, middle, center
+
+name: xpath
+  
+# Improved selection using XPATH
+
+---
+
+# What is XPATH
+
+- The **real power of parsing** comes from the ability to 
+  + *locate* nodes and 
+  + *extract* information from them.
+- Sometimes, however, it may be complicated to identify the exact piece we wish to extract from a chunk of html.
+- A good alternative to combinations of selectors is provided by XPATH.
+- XPATH is __a language to navigate through elements and attributes in an XML/HTML document__
+
+---
+
+# Example: Locating items (1)
+
+.pull-left[
+```{r, echo=FALSE, height.out="80%"}
+knitr::include_graphics("images/xpathExample1.png")
+```
+]
+
+<div style="font-size:13pt">
+.pull-right[
+
+```{r eval=FALSE}
+instruction <- "html %>%
+   html_elements(xpath = '//p')"
+# CSS selector equivalent: p
+```
+
+```{r eval=FALSE}
+instruction <- "html %>%
+   html_elements(xpath = '//body//p')"
+# CSS selector equivalent: body p
+```
+
+```{r eval=FALSE}
+instruction <- "html %>%
+   html_elements(xpath = '/html/body//p')"
+# CSS selector equivalent: html > body p
+```
+]
+
+---
+
+# Example: Locating items (2)
+
+.pull-left[
+```{r, echo=FALSE, height.out="80%"}
+knitr::include_graphics("images/xpathExample2.png")
+```
+]
+
+.pull-right[
+<div style="font-size:13pt">
+```{r eval=FALSE}
+instruction <- "html %>% 
+html_elements(xpath = '//div/p')"
+# CSS selector equivalent: div > p
+```
+]
+
+---
+
+# Example: Locating (3)
+
+.pull-left[
+```{r, echo=FALSE, height.out="80%"}
+knitr::include_graphics("images/xpathExample3.png")
+```
+]
+
+.pull-right[
+<div style="font-size:14pt">
+
+```{r eval=FALSE}
+instruction <- "html %>%
+html_elements(xpath = '//div[a]')"
+# CSS selector equivalent: none"
+```
+]
+
+---
+
+# XPATH syntax
+
+- XPATH uses __path expressions__ to select nodes in an XML document. 
+- It has a computational model to identify sets of nodes (node-sets).
+- We can specify paths through the tree structure:
+    + based on node names
+    + based on node content
+    + based on a node’s relationship to other nodes
+---
+
+# Writing XPATH sentences
+
+- The key concept is knowing to write XPATH expressions.
+- XPATH expressions have a syntax similar to the way files are located in a hierarchy of directories/folders in a computer file system. 
+- For instance, the XPATH expression to locate the first "span" _that is the child_ of a "div" element, the syntax is:
+
+```{r eval=FALSE}
+'//div/span'
+```
+- XPATH sentences may look strange, but they are automatically provided by selectorGadget or Google developper tools
+
+---
+# Getting XPATH for a given selector
+<div style="font-size:15pt">
+.pull-left[
+- Go to page "https://www.allrecipes.com/recipe/25080/mmmmm-brownies/"
+- Select the "Recipe" block and use Google Developper Tools (right button --> "Inspeccionar") to inspect the selector associated with it.
+- Use the right button again to copy to clipboard either:
+  - The selector
+  - Its XPATH translation
+- Check that it works parsing the url and sending the selectors to html_element
+]
+
+.pull-right[
+```{r echo=FALSE}
+knitr::include_graphics("images/inspectSelectors1.png")
+```
+
+selector : "#recipe\_\_steps\_1-0"
+
+xpath : '//*[@id="recipe\_\_steps\_1-0"]`'
+]
+
+---
+# XPATH main expressions
+
+- The main path expressions (ie symbols) are:
+
+<div align="center">
+<img src="images/XPathSyntax1.png" width="100%" style="float:centered"/>
+</div>
+
+---
+
+# XPATH wildcards
+
+- XPATH wildcards can be used to select unknown elements
+
+<div align="center">
+<img src="images/XPathWildcards1.png" width="100%" style="float:centered"/>
+</div>
+
+---
 class: inverse, middle, center
 
 name: Resources
 
 # References and Resources
+
+- [HTML Parsing and Screen Scraping with the Simple HTML DOM Library](https://code.tutsplus.com/tutorials/html-parsing-and-screen-scraping-with-the-simple-html-dom-library--net-11856)
+
+- [A guide to CSS selectors for Web Scraping](https://datagrab.io/blog/guide-to-css-selectors-for-web-scraping/)
 
 ---
 

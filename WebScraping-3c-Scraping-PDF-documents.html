@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Beyond HTML (1). Scraping PDF documents</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Alex Sanchez and Francesc Carmona" />
+    <script src="libs/header-attrs/header-attrs.js"></script>
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/remark-css/metropolis.css" rel="stylesheet" />
+    <link href="libs/remark-css/metropolis-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="css4WScourse.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# Beyond HTML (1). Scraping PDF documents
+]
+.author[
+### Alex Sanchez and Francesc Carmona
+]
+.institute[
+### Genetics Microbiology and Statistics Department <br> Universitat de Barcelona
+]
+.date[
+### October 2022
+]
+
+---
+
+
+&lt;style type="text/css"&gt;
+.remark-slide-content {
+    font-size: 28px;
+    padding: 1em 2em 1em 2em;
+}
+.left-code {
+  color: #777;
+  width: 38%;
+  height: 92%;
+  float: left;
+}
+.right-plot {
+  width: 60%;
+  float: right;
+  padding-left: 1%;
+}
+&lt;style&gt;
+span.small {
+  font-size: smaller;
+}
+&lt;/style&gt;
+
+
+
+# Outline
+
+.columnwide[
+  ### 1) [Introduction](#Introduction)
+  ### 2) [Scraping PDF files](#pdf)
+  ### 3) [References and Resources](#Resources)
+]
+
+---
+
+class: inverse, middle, center
+
+name: Introduction
+
+# Introduction
+
+---
+
+# Beyond HTML
+
+- We have learned how to scrape _static_ web pages which are developped mainly in HTML.
+- While the most common, it is not the only format used in the web either
+  - To develop web pages
+  - To store data
+- A global overview of web scraping should also consider _dynamic web pages_,
+- As well of acquiring data from a bunch of distinct formats such as XML, JSON or PDF.
+- In this chapter we will take a bird's eye view on how to extract data from PDF files.
+
+---
+class: inverse, middle, center
+
+name: pdf
+
+# Extracting information from PDF files
+
+---
+# Plenty of pdf files
+
+- PDF is a very popular format between users.
+
+- Although it is not exactly a format for the web,
+- The web is full of pdf documents giving access to
+  - Text we may wish to mine
+  - Data we may want to recover
+
+- We would like to be able to easily extract text and tables from pdf documents in a similar way as we do with HTML.
+
+---
+# The __P__ortable __D__ocument __F__ormat
+
+- The PDF format was created bt Adobe in 1993 to facilitate _sharing_ and _printing_ documents.
+
+- But it was not intended for being indexed or searched.
+
+- Unlike HTML or XML, PDF files do not have an easy-to-parse structure which makes  scraping pdf more artisanal work.
+
+---
+
+# There are PDFs and PDFs
+
+- The fact that there is no agreement on the internal structure a pdf file must have, makes it more complicated to extract information from it in a unique form. 
+
+- Some files, such as pdfs created by saving a text document or "printing" a file as pdf  may have an relatively clean structure that makes them easy to parse.
+
+- Other, such as files created by scanning text/images ("OCR") may be more complicated requiring distinct software for that goal.
+  
+---
+
+# PDF conversion software
+
+- The characteristics described above make scraping pdf files a task more complicated than one would expect.
+- This has also generated the availability of multiple software solutions of distinct types and distinct prices.
+  - [Top 9 Free PDF Converter in 2022](https://pdf.wondershare.com/top-pdf-software/free-pdf-converter.html)
+  - [How to Extract Data From PDF Documents](https://nanonets.com/blog/extract-data-from-pdf/) (_Commertial, not endorsed!_)
+- Some factors when it comes to deciding which tool to use 
+  - Ease of use
+  - Repeteability
+  - Quantity
+---
+
+# R packages
+
+- There are a few packages specific fot pdf files
+  - **[pdftools](https://docs.ropensci.org/pdftools/)**
+  - [pdftables](https://github.com/expersso/pdftables)
+  - [PDF Data Extractor (PDE)](https://cran.r-project.org/web/packages/PDE)
+  - **[tabulizer](https://github.com/ropensci/tabulizer)** (_Not in CRAN due to dependencies problems_)
+
+- Also some standard packages allow reading files.
+
+  - [textreadr](https://rdrr.io/cran/textreadr/)
+    - A small collection of tools to read many file types.
+
+---
+
+class: inverse, middle, center
+
+name: tabulizer
+
+# Extracting tables with `tabulizer`
+
+---
+
+# Tabulizer Example
+
+- From the package vignette
+
+&lt;div style="font-size:15pt"&gt;
+
+
+```r
+library(tabulizer)
+f &lt;- system.file("examples", "data.pdf", package = "tabulizer")
+out1 &lt;- extract_tables(f)
+str(out1)
+## List of 4
+##  $ : chr [1:32, 1:10] "mpg" "21.0" "21.0" "22.8" ...
+##  $ : chr [1:7, 1:5] "Sepal.Length " "5.1 " "4.9 " "4.7 " ...
+##  $ : chr [1:7, 1:6] "" "145 " "146 " "147 " ...
+##  $ : chr [1:15, 1] "supp" "VC" "VC" "VC" ...
+```
+
+---
+
+# A more elaborated example (1)
+
+This has been adapted from the R-bloggers entry:  
+[PDF Scraping in R with tabulizer](https://www.r-bloggers.com/2019/09/pdf-scraping-in-r-with-tabulizer/)
+
+
+```r
+library(tabulizer)
+library(tidyverse)
+myFile &lt;- "endangered_species.pdf"
+endangered_species_scrape &lt;- extract_tables(
+    file   = myFile, 
+    method = "decide", 
+    output = "data.frame")
+endangered_species_raw_tbl &lt;- endangered_species_scrape %&gt;% 
+    pluck(1) %&gt;% 
+    as_tibble()
+```
+
+---
+# A more elaborated example (2)
+
+&lt;div style="font-size:15pt"&gt;
+
+```r
+# Show first 6 rows
+endangered_species_raw_tbl %&gt;% head() %&gt;% knitr::kable()
+```
+
+&lt;img src="images/endangeredSpeciesRawTable.png" width="1141" /&gt;
+
+Once the data has been extracted it may be (must be) further processed 
+  - to clean and tidy the data
+  - to visualize and analyze it
+
+---
+
+class: inverse, middle, center
+
+name: pdftools
+
+# Extracting text with pdf_tools()
+
+---
+
+# The `pdf_tools` package
+
+- Imagine we need to convert a pdf file from the "BOLETÍN OFICIAL DEL REGISTRO MERCANTIL"
+[https://www.boe.es/borme/dias/2022/10/05/pdfs/BORME-A-2022-191-08.pdf](https://www.boe.es/borme/dias/2022/10/05/pdfs/BORME-A-2022-191-08.pdf)
+
+- Start downloading the file on which we are interested.
+
+&lt;div style="font-size:15pt"&gt;
+
+```r
+myURL &lt;- "https://www.boe.es/borme/dias/2022/10/05/pdfs/BORME-A-2022-191-08.pdf"
+myFilename &lt;-"BORME-A-2022-191-08.pdf"
+download.file(url=myURL, destfile=myFilename)
+```
+
+---
+
+# Text extraction from pdf 
+
+- PDF file is extracted as a vector of character strings
+- Each string contains a peage of the document
+- Once the data is available it may/must be cleaned using R text analysis capabilities
+
+.pull-left[
+
+
+```r
+library(pdftools)
+txt &lt;- pdf_text(myFilename)
+class(txt)
+length(txt)
+cat(txt[1])
+```
+]
+
+.pull-right[
+&lt;img src="images/textFromPDF.png" width="1221" /&gt;
+]
+
+---
+
+# Getting more information
+
+- In addition to reading in our .pdf file, we may want to extract certain metadata about it as well. 
+- pdftools has a few handyu functions that can be used to extract things 
+  - the number of pages: `pdf_info()`
+  - the fonts being used:  `pdf_fonts()` 
+  - the table of contents: `pdf_toc()`
+  - whether there are any attachments: `pdf_attachments()` 
+  - or the original date and time the document was created: `pdf_pagesize()` 
+---
+
+class: inverse, middle, center
+
+name: Ressources
+
+# References and Resources
+---
+
+# Resources 
+
+-[PDF Scraping in R with tabulizer](https://www.r-bloggers.com/2019/09/pdf-scraping-in-r-with-tabulizer/)
+
+-[Converting PDFs to txt files with R](https://ladal.edu.au/pdf2txt.html)
+-[Getting your .pdfs into R](https://alexluscombe.ca/post/r-pdftools/)
+-[Parsing your .pdfs in R](https://alexluscombe.ca/blog/parsing-your-.pdfs-in-r/)
+
+-[https://learningactors.com/how-to-extract-and-clean-data-from-pdf-files-in-r/](https://learningactors.com/how-to-extract-and-clean-data-from-pdf-files-in-r/)
+-[Scrape tables from PDF](https://crimebythenumbers.com/scrape-table.html)
+
+
+
+
+
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": true
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
